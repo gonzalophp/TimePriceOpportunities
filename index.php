@@ -30,7 +30,8 @@ include('ini.php');
 if (count($_POST)>0){
     if (array_key_exists('update_dukascopy', $_POST)){
         include('class/update_dukascopy.class.php');
-        $oUpdateDukascopy = new update_dukascopy("25","60"); // DAX, 600 segundos
+        //$oUpdateDukascopy = new update_dukascopy("25","60"); // DAX, 60 segundos
+        $oUpdateDukascopy = new update_dukascopy("778","60"); // IBEX, 60 segundos
         $oUpdateDukascopy->run();
     }
     
@@ -43,24 +44,6 @@ if (count($_POST)>0){
         echo $oDisplayTPO->run();
     }
 }
-      /*  <div class="timeframedays">
-            <div class="price" style="background-size: 150px;">2200 Esto es</div>
-            <div class="price" style="background-size: 24px;"><span>2201 Esto es 2201</span></div>
-            <div class="price" style="background-size: 100px;">2202 Esto es 2202</div>
-            <div class="price">jjj</div>
-            <div class="price">bbbbbbb</div>
-            <div class="price">jjj</div>
-            <div class="price">bbbbbbb</div>
-            <div class="price">jjj</div>
-            <div class="price">bbbbbbb</div>
-        </div>
-        <div class="timeframedays">
-            <div class="price" style="background-size: 150px;">2200 Esto es</div>
-            <div class="price" style="background-size: 24px;"><span>2201 Esto es 2201</span></div>
-            <div class="price" style="background-size: 100px;">2202 Esto es 2202</div>
-            <div class="price">jjj</div>
-            <div class="price">bbbbbbb</div>
-        </div>*/
  ?>
     </body>
 </html>       

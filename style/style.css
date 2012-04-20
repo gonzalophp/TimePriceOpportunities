@@ -31,7 +31,6 @@ div.price {
     display:block;
     padding:1px 1px 1px 1px;
     border: solid 1px #dddddd;
-    width:300px;
     background:url("../img/back_orange.png") no-repeat;
     margin: 1px 1px 1px 1px;
 }
