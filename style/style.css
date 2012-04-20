@@ -1,0 +1,38 @@
+body {
+    font-family: Verdana,"Sans-serif";
+    font-size: 14px;
+}
+
+fieldset {
+    border: solid 1px #d5d5d5;
+    background-color: #e9e8e3;
+}
+
+label {
+    width: 80px;
+    float: left;
+    margin-top: -16px;
+}
+
+input[type=text] {
+    float: left;
+    border: solid 1px #d5d5d5;
+    margin: 6px 12px 20px -80px;
+}
+
+div.timeframedays {
+    border: solid 1px #aaaaaa;
+    padding:4px 4px 4px 4px;
+    display:inline-block;
+    font-size: 8px;
+}
+
+div.price {
+    display:block;
+    padding:1px 1px 1px 1px;
+    border: solid 1px #dddddd;
+    width:300px;
+    background:url("../img/back_orange.png") no-repeat;
+    margin: 1px 1px 1px 1px;
+}
+

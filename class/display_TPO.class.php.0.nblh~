@@ -1,0 +1,93 @@
+<?php
+require_once('class/postgres.class.php');
+
+class display_TPO {
+    
+    private $_sQuoteId;
+    private $_iInterval;
+    private $_iDays;
+    
+    function display_TPO($sQuoteId, $iInterval, $iDays){
+        $this->_sQuoteId    = $sQuoteId;
+        $this->_iInterval   = $iInterval;
+        $this->_iDays       = $iDays;
+    }
+    
+    public function run(){
+        $aDays = $this->_getDayFrames();
+        var_dump($aDays);
+    }
+    
+    private function _getDayFrames(){
+        $aResultSet = $this->_getData();
+        $sDateFormat = 'Y-m-d H:i:se';
+        $aDays = array();
+        foreach($aResultSet as $aResultSetLine){
+            $oDate = DateTime::createFromFormat($sDateFormat, $aResultSetLine['RD_datetime']);
+            
+            $sDayKey = $oDate->format('Ymd');
+            
+            if (!array_key_exists($sDayKey, $aDays)) {
+                $aDays[$sDayKey] = array('TPO'       => array()
+                                      , 'volumes'   => array());
+            }
+                    
+            $nHalf = ($oDate->format('i') < 30) ? 0:1;
+            $sTPOKey = $oDate->format('H').$nHalf;
+            
+            $nMin = intval(round($aResultSetLine['RD_min']));
+            $nMax = intval(round($aResultSetLine['RD_max']));
+            $nVol = $aResultSetLine['RD_volume'];
+            
+            if (!array_key_exists($sTPOKey, $aDays[$sDayKey]['TPO'])){ 
+                $aDays[$sDayKey]['TPO'][$sTPOKey] = array('min' => $nMin
+                                                        , 'max' => $nMax
+                                                        , 'vol' => $nVol);
+            }
+            else {
+                $aDays[$sDayKey]['TPO'][$sTPOKey] = array('min' => min(array($nMin, $aDays[$sDayKey]['TPO'][$sTPOKey]['min']))
+                                                        , 'max' => max(array($nMax, $aDays[$sDayKey]['TPO'][$sTPOKey]['max']))
+                                                        , 'vol' => $aDays[$sDayKey]['TPO'][$sTPOKey]['vol']+$nVol);
+            }
+            
+            
+            $nAverageVolume = round($nVol/($nMax-$nMin+1));
+            for($nPrice=$nMin; $nPrice<=$nMax; $nPrice++){
+                if (!array_key_exists($nPrice, $aDays[$sDayKey]['volumes'])){
+                    $aDays[$sDayKey]['volumes'][$nPrice] = $nAverageVolume; 
+                }
+                else {
+                    $aDays[$sDayKey]['volumes'][$nPrice] += $nAverageVolume; 
+                }
+            }
+        }
+        
+        foreach($aDays as $sDay=>$aDayDetails){
+            krsort($aDays[$sDay]['volumes']);
+        }
+        
+        return $aDays;
+    }
+    
+    private function _getData(){
+        $oPostgres = new postgres();
+        $oPostgres->connect();
+        
+        $sQuery = 'SELECT "RD_dukascopy_id"'
+                        .' ,"RD_interval"'
+                        .' ,"RD_datetime"'
+                        .' ,"RD_min"'
+                        .' ,"RD_max"'
+                        .' ,"RD_open"'
+                        .' ,"RD_close"'
+                        .' ,"RD_volume"'
+                 .' FROM public."RAW_DUKASCOPY"'
+                 .' WHERE "RD_dukascopy_id" = $1'
+                    .' AND "RD_interval" = $2'
+                    .' AND "RD_datetime" > now() - interval \''.$this->_iDays.' days\';';
+        
+        $aResultSet = $oPostgres->query("query_name4", $sQuery, array($this->_sQuoteId
+                                                                ,$this->_iInterval));
+        return $aResultSet;
+    }
+}
