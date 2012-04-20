@@ -8,14 +8,15 @@ class display_TPO {
     private $_iDays;
     private $_aDays;
     
-    function display_TPO($sQuoteId, $iInterval, $iDays){
+    function display_TPO($sQuoteId, $iInterval, $iDays, $nPriceInterval){
         $this->_sQuoteId    = $sQuoteId;
         $this->_iInterval   = $iInterval;
         $this->_iDays       = $iDays;
         $this->_aDays       = array( 'time_frame_data'  => array()
                                     , 'min_value'       => 100000000000
                                     , 'max_value'       => 0
-                                    , 'max_volume'      => 0);
+                                    , 'max_volume'      => 0
+                                    , 'price_interval'  => $nPriceInterval);
     }
     
     public function run(){
@@ -36,10 +37,10 @@ class display_TPO {
                 if (array_key_exists($nPrice, $this->_aDays['time_frame_data'][$sDayKey]['prices'])){
                     $nRelativeVolume = round(300*($this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['volume']/$this->_aDays['max_volume']));
                     $sLetters = $this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['letters'];
-                    $sHTML .= '<div class="price" style="background-size: '.$nRelativeVolume.'px;">'.$nPrice.' '.$sLetters.'</div>';
+                    $sHTML .= '<div class="price" style="background-size: '.$nRelativeVolume.'px;">'.$nPrice*$this->_aDays['price_interval'].' '.$sLetters.'</div>';
                 }
                 else {
-                    $sHTML .= '<div class="price" style="background-size: 0px;">'.$nPrice.'</div>';
+                    $sHTML .= '<div class="price" style="background-size: 0px;">'.$nPrice*$this->_aDays['price_interval'].'</div>';
                 }
             }
             $sHTML .= '</div>';
@@ -59,25 +60,26 @@ class display_TPO {
             
             if (!array_key_exists($sDayKey, $this->_aDays['time_frame_data'])) {
                 $this->_aDays['time_frame_data'][$sDayKey] = array('TPO'    => array()
-                                                                , 'prices' => array());
+                                                                 , 'prices' => array());
             }
                     
             $nHalf = ($oDate->format('i') < 30) ? 0:1;
             $sTPOKey = $oDate->format('H').$nHalf;
             
-            $nMin = intval(round($aResultSetLine['RD_min']));
-            $nMax = intval(round($aResultSetLine['RD_max']));
+            $nMin = intval($aResultSetLine['RD_min']/$this->_aDays['price_interval']);
+            $nMax = intval($aResultSetLine['RD_max']/$this->_aDays['price_interval']);
+            
             $nTimeVolume = $aResultSetLine['RD_volume'];
             
             if (!array_key_exists($sTPOKey, $this->_aDays['time_frame_data'][$sDayKey]['TPO'])){ 
                 $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey] = array('min' => $nMin
-                                                                                    , 'max' => $nMax
-                                                                                    , 'time_volume' => $nTimeVolume);
+                                                                                  , 'max' => $nMax
+                                                                                  , 'time_volume' => $nTimeVolume);
             }
             else {
                 $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey] = array('min' => min(array($nMin, $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey]['min']))
-                                                                                    , 'max' => max(array($nMax, $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey]['max']))
-                                                                                    , 'time_volume' => $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey]['time_volume']+$nTimeVolume);
+                                                                                  , 'max' => max(array($nMax, $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey]['max']))
+                                                                                  , 'time_volume' => $this->_aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey]['time_volume']+$nTimeVolume);
             }
             
             
@@ -85,7 +87,7 @@ class display_TPO {
             for($nPrice=$nMin; $nPrice<=$nMax; $nPrice++){
                 if (!array_key_exists($nPrice, $this->_aDays['time_frame_data'][$sDayKey]['prices'])){
                     $this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice] = array('volume'  => $nPriceVolume
-                                                                                        ,'letters' => ''); 
+                                                                                        , 'letters' => ''); 
                 }
                 else {
                     $this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['volume'] += $nPriceVolume; 

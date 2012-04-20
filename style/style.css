@@ -9,7 +9,7 @@ fieldset {
 }
 
 label {
-    width: 80px;
+    width: 90px;
     float: left;
     margin-top: -16px;
 }
@@ -17,7 +17,7 @@ label {
 input[type=text] {
     float: left;
     border: solid 1px #d5d5d5;
-    margin: 6px 12px 20px -80px;
+    margin: 6px 12px 20px -90px;
 }
 
 div.timeframedays {

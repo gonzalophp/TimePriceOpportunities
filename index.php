@@ -18,6 +18,8 @@
                 <input type="text" name="interval" value="60"/>
                 <label  for="days">Days</label>
                 <input type="text" name="days" value="5"/>
+                <label  for="days">Price Interval</label>
+                <input type="text" name="price_interval" value="5"/>
                 <input name="display_5day_tpo" type="submit" value="Display TPOs"/>
             </fieldset>
         </form>   
@@ -36,7 +38,8 @@ if (count($_POST)>0){
         include('class/display_TPO.class.php');
         $oDisplayTPO = new display_TPO(  $_POST['quoteid']
                                         ,$_POST['interval']
-                                        ,$_POST['days']); // DAX, 600 segundos
+                                        ,$_POST['days']
+                                        ,$_POST['price_interval']); 
         echo $oDisplayTPO->run();
     }
 }
