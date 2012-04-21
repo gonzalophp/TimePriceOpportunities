@@ -1,10 +1,9 @@
 <?php
 date_default_timezone_set('Europe/London');
 
-
-
 $sProjectFolder = dirname($_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF']);
-set_include_path(get_include_path().';'.$sProjectFolder);
+$sSmartyPath = 'smarty/Smarty-3.1.8/libs';
+set_include_path(get_include_path().';'.$sProjectFolder.';'.$sSmartyPath);
 
 
 /*

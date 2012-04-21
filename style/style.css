@@ -20,6 +20,11 @@ input[type=text] {
     margin: 6px 12px 20px -90px;
 }
 
+select {
+    float:left;
+    margin: 6px 12px 20px -90px;
+}
+
 div.timeframedays {
     border: solid 1px #aaaaaa;
     padding:4px 4px 4px 4px;
