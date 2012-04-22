@@ -102,7 +102,7 @@ class display_TPO {
     private function _getData(){
         $oPostgres = new postgres();
         $oPostgres->connect();
-        
+
         $sQuery = 'SELECT "RD_dukascopy_id"'
                         .' ,"RD_interval"'
                         .' ,"RD_datetime"'
@@ -114,10 +114,18 @@ class display_TPO {
                  .' FROM public."RAW_DUKASCOPY"'
                  .' WHERE "RD_dukascopy_id" = $1'
                     .' AND "RD_interval" = $2'
-                    .' AND "RD_datetime" > now() - interval \''.$this->_iDays.' days\';';
+                    .' AND date_trunc(\'day\',"RD_datetime") in ( SELECT distinct date_trunc(\'day\',"RD_datetime")'
+                                                                .' FROM public."RAW_DUKASCOPY" '
+                                                                .' WHERE "RD_dukascopy_id" = $1'
+                                                                .' AND "RD_interval" = $2'
+                                                                .' ORDER BY date_trunc(\'day\',"RD_datetime") desc'
+                                                                .' LIMIT $3);';
         
+        
+
         $aResultSet = $oPostgres->query("query_name4", $sQuery, array($this->_sQuoteId
-                                                                     ,$this->_iInterval));
+                                                                     ,$this->_iInterval
+                                                                     ,$this->_iDays));
         return $aResultSet;
     }
 }
