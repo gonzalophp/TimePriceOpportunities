@@ -13,6 +13,6 @@
         <input type="text" name="days" value="5"/>
         <label  for="days">Price Interval</label>
         <input type="text" name="price_interval" value="5"/>
-        <input name="display_5day_tpo" type="submit" value="Display TPOs"/>
+        <input name="display_day_frame_tpo" type="submit" value="Display TPOs"/>
     </fieldset>
 </form>

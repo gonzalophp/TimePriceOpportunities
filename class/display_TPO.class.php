@@ -18,38 +18,8 @@ class display_TPO {
                                     , 'max_volume'      => 0
                                     , 'price_interval'  => $nPriceInterval);
     }
-    
-    public function run(){
-        $this->_buildDayFrameData();
-        return $this->_getHTML();
-        //var_dump($this->_aDays);
-    }
-    
-    private function _getHTML() {
-        
-        $sHTML = '';
-        $sHTML .= '<style>div.price {width:100px;}</style>';
-        foreach($this->_aDays['time_frame_data'] as $sDayKey => $aDayData){
-            $sHTML .= '<div class="timeframedays">';
-            $sHTML .= '<div style="font-weight:bold;color:blue;">'.$sDayKey.'</div>';
-            
-            for($nPrice = $this->_aDays['max_value']; $nPrice >= $this->_aDays['min_value']; $nPrice--){
-                if (array_key_exists($nPrice, $this->_aDays['time_frame_data'][$sDayKey]['prices'])){
-                    $nRelativeVolume = round(100*($this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['volume']/$this->_aDays['max_volume']));
-                    $sLetters = $this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['letters'];
-                    $sHTML .= '<div class="price" style="background-size: '.$nRelativeVolume.'px;">'.$nPrice*$this->_aDays['price_interval'].' '.$sLetters.'</div>';
-                }
-                else {
-                    $sHTML .= '<div class="price" style="background-size: 0px;">'.$nPrice*$this->_aDays['price_interval'].'</div>';
-                }
-            }
-            $sHTML .= '</div>';
-        }
-        
-        return $sHTML;
-    }
-    
-    private function _buildDayFrameData(){
+
+    function getDayFrameData(){
         $aResultSet = $this->_getData();
         $sDateFormat = 'Y-m-d H:i:se';
         if (!empty($aResultSet)){
@@ -125,6 +95,8 @@ class display_TPO {
                 }
             }
         }
+        
+        return $this->_aDays;
     }
     
     private function _getData(){
@@ -149,3 +121,10 @@ class display_TPO {
         return $aResultSet;
     }
 }
+
+$oDisplayTPO = new display_TPO(  $_POST['quote_id']
+                                ,$_POST['interval']
+                                ,$_POST['days']
+                                ,$_POST['price_interval']); 
+//echo $oDisplayTPO->run();
+$oPage->day_frame_tpo = $oDisplayTPO->getDayFrameData();
