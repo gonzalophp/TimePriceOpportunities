@@ -30,7 +30,8 @@ class display_TPO {
 
                 if (!array_key_exists($sDayKey, $this->_aDays['time_frame_data'])) {
                     $this->_aDays['time_frame_data'][$sDayKey] = array('TPO'    => array()
-                                                                    , 'prices' => array());
+                                                                    , 'prices' => array()
+                                                                    , 'rotation_factor' => array());
                 }
 
                 $nHalf = ($oDate->format('i') < 30) ? 0:1;
@@ -63,6 +64,35 @@ class display_TPO {
                         $this->_aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['volume'] += $nPriceVolume; 
                     }
                 }
+            }
+            
+            foreach($this->_aDays['time_frame_data'] as $sDayKey=>$aDayData){
+                $iRotationFactorTop = 0;
+                $iRotationFactorBottom = 0;
+                $nTop=0;
+                $nBottom=0;
+                foreach($aDayData['TPO'] as $sTPOKey => $aTPOData){
+                    if (($nTop!=0) && ($nBottom!=0)){
+                        if ($aTPOData['max']>$nTop){
+                            $iRotationFactorTop++;
+                        }
+                        elseif ($aTPOData['max']<$nTop){
+                            $iRotationFactorTop--;
+                        }
+                        if ($aTPOData['min']>$nBottom){
+                            $iRotationFactorBottom++;
+                        }
+                        elseif ($aTPOData['min']<$nBottom){
+                            $iRotationFactorBottom--;
+                        }
+                        $nTop = $aTPOData['max'];
+                        $nBottom = $aTPOData['min'];
+                    }
+                    $nTop = $aTPOData['max'];
+                    $nBottom = $aTPOData['min'];
+                }
+                $this->_aDays['time_frame_data'][$sDayKey]['rotation_factor'] = array('top'     => $iRotationFactorTop
+                                                                                    , 'bottom'  => $iRotationFactorBottom);
             }
 
             foreach($this->_aDays['time_frame_data'] as $sDayKey=>$aDayData){
