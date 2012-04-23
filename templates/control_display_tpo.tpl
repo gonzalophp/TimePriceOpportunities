@@ -13,6 +13,8 @@
         <input type="text" name="days" value="5"/>
         <label  for="days">Price Interval</label>
         <input type="text" name="price_interval" value="5"/>
+        <label  for="days">Graph Width</label>
+        <input type="text" name="graph_width" value="100"/>
         <input name="display_day_frame_tpo" type="submit" value="Display TPOs"/>
     </fieldset>
 </form>
