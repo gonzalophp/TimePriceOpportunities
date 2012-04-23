@@ -14,14 +14,13 @@ $oSmarty->clearAllCache();
 
 $oPage = new StdClass();
 
-require_once('class/control.update_dukascopy.class.php');
-require_once('class/control.display_TPO.class.php');
+require_once('visual/visual.update_dukascopy.php');
+require_once('visual/visual.display_TPO.php');
 
 if (count($_POST)>0){
     if (array_key_exists('update_dukascopy', $_POST)){
         require_once('class/update_dukascopy.class.php');
-        //$oUpdateDukascopy = new update_dukascopy("25","60"); // DAX, 60 segundos
-        $oUpdateDukascopy = new update_dukascopy("778","60"); // IBEX, 60 segundos
+        $oUpdateDukascopy = new update_dukascopy("25","60"); // DAX, 60 segundos
         $oUpdateDukascopy->run();
     }
     

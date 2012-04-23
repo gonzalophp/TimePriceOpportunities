@@ -4,7 +4,7 @@
     </head>    
     <body>
         <!--{if isset($oPage->control_update_dukascopy)}-->
-            <!--{include file='control_update_dukascopy.tpl'}-->
+            <!--{include file='control_update_dukascopy.tpl' control_update_dukascopy=$oPage->control_update_dukascopy}-->
         <!--{/if}-->
         <!--{if isset($oPage->control_display_tpo)}-->
             <!--{include file='control_display_tpo.tpl' control_display_tpo=$oPage->control_display_tpo}-->

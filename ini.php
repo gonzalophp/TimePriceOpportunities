@@ -5,6 +5,7 @@ $sProjectFolder = dirname($_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF']);
 $sSmartyPath = 'smarty/Smarty-3.1.8/libs';
 set_include_path(get_include_path().';'.$sProjectFolder.';'.$sSmartyPath);
 
+define('DATA_INTERFACE', 'postgresql');
 
 /*
 function customError($errno, $errstr) {

@@ -1,5 +1,5 @@
 <?php
-require_once('class/postgres.class.php');
+require_once('class/data_interface.class.php');
 
 class display_TPO {
     
@@ -23,7 +23,10 @@ class display_TPO {
                             , 'max_volume'      => 0
                             , 'price_interval'  => $this->_nPriceInterval
                             , 'graph_width'     => $this->_iGraphWidth);
-        $aResultSet = $this->_getData();
+        
+        $oDataInterface = new data_interface();
+        $aResultSet = $oDataInterface->getTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
+
         $sDateFormat = 'Y-m-d H:i:se';
         if (!empty($aResultSet)){
             foreach($aResultSet as $aResultSetLine){
@@ -135,36 +138,6 @@ class display_TPO {
         
         return $aDays;
     }
-    
-    private function _getData(){
-        $oPostgres = new postgres();
-        $oPostgres->connect();
-
-        $sQuery = 'SELECT "RD_dukascopy_id"'
-                        .' ,"RD_interval"'
-                        .' ,"RD_datetime"'
-                        .' ,"RD_min"'
-                        .' ,"RD_max"'
-                        .' ,"RD_open"'
-                        .' ,"RD_close"'
-                        .' ,"RD_volume"'
-                 .' FROM public."RAW_DUKASCOPY"'
-                 .' WHERE "RD_dukascopy_id" = $1'
-                    .' AND "RD_interval" = $2'
-                    .' AND date_trunc(\'day\',"RD_datetime") in ( SELECT distinct date_trunc(\'day\',"RD_datetime")'
-                                                                .' FROM public."RAW_DUKASCOPY" '
-                                                                .' WHERE "RD_dukascopy_id" = $1'
-                                                                .' AND "RD_interval" = $2'
-                                                                .' ORDER BY date_trunc(\'day\',"RD_datetime") desc'
-                                                                .' LIMIT $3);';
-        
-        
-
-        $aResultSet = $oPostgres->query("query_name4", $sQuery, array($this->_sQuoteId
-                                                                     ,$this->_iInterval
-                                                                     ,$this->_iDays));
-        return $aResultSet;
-    }
 }
 
 $oDisplayTPO = new display_TPO(  $_POST['quote_id']
@@ -172,5 +145,5 @@ $oDisplayTPO = new display_TPO(  $_POST['quote_id']
                                 ,$_POST['days']
                                 ,$_POST['price_interval']
                                 ,$_POST['graph_width']); 
-//echo $oDisplayTPO->run();
+
 $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameData();
