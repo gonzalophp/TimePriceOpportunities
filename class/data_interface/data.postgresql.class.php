@@ -16,7 +16,7 @@ class data_postgresql {
                         .' ,"DQI_quote_id"'
                  .' FROM public."DUKASCOPY_QUOTES_ID";';
         
-        return self::$_oPostgres->query("dukascopy_quote_list", $sQuery);
+        return self::$_oPostgres->query($sQuery);
     }
     
     public function getTPOData($sQuote, $iInterval,$iDays){
@@ -39,9 +39,9 @@ class data_postgresql {
                                                                 .' LIMIT $3);';
         
         
-        return self::$_oPostgres->query("query_name4", $sQuery, array($sQuote
-                                                                     ,$iInterval
-                                                                     ,$iDays));
+        return self::$_oPostgres->query($sQuery, array($sQuote
+                                                    ,$iInterval
+                                                    ,$iDays));
     }
 }
 ?>

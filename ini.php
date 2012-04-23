@@ -6,6 +6,11 @@ $sSmartyPath = 'smarty/Smarty-3.1.8/libs';
 set_include_path(get_include_path().';'.$sProjectFolder.';'.$sSmartyPath);
 
 define('DATA_INTERFACE', 'postgresql');
+define('DB_HOST','localhost');
+define('DB_PORT','5432');
+define('DB_NAME','postgres');
+define('DB_USER','postgres');
+define('DB_PASSWORD','postgres');
 
 /*
 function customError($errno, $errstr) {

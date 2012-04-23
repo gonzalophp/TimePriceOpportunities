@@ -8,7 +8,7 @@ class data_interface {
         require_once('class/data_interface/data.'.DATA_INTERFACE.'.class.php');
         
         $this->_data_interface_class = 'data_'.DATA_INTERFACE;
-        $this->_data_interface = new $this->_data_interface_class();
+        $this->_data_interface = new $this->_data_interface_class(DB_HOST,DB_PORT,DB_NAME,DB_USER,DB_PASSWORD);
     }
     
     public function __CALL($sFunctionName,$aParameters){
