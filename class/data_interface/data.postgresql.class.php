@@ -43,5 +43,42 @@ class data_postgresql {
                                                     ,$iInterval
                                                     ,$iDays));
     }
+    
+    public function insertDukascopyData($RD_dukascopy_id
+                                        ,$RD_interval
+                                        ,$RD_datetime     
+                                        ,$RD_min       
+                                        ,$RD_max          
+                                        ,$RD_open         
+                                        ,$RD_close        
+                                        ,$RD_volume) {
+                                                    
+        $insertQuery = 'INSERT INTO "RAW_DUKASCOPY"( "RD_dukascopy_id"' // 1
+                                                . ',"RD_interval"'      // 2
+                                                . ',"RD_datetime"'      // 3
+                                                . ',"RD_min"'           // 4
+                                                . ',"RD_max"'           // 5
+                                                . ',"RD_open"'          // 6
+                                                . ',"RD_close"'         // 7
+                                                . ',"RD_volume")'       // 8
+                                        . 'VALUES ($1'
+                                                .',$2'
+                                                .',$3'
+                                                .',$4'
+                                                .',$5'
+                                                .',$6'
+                                                .',$7'
+                                                .',$8);';
+        
+        return self::$_oPostgres->query($insertQuery
+                                        , array( $RD_dukascopy_id
+                                                ,$RD_interval
+                                                ,$RD_datetime     
+                                                ,$RD_min       
+                                                ,$RD_max          
+                                                ,$RD_open         
+                                                ,$RD_close        
+                                                ,$RD_volume));
+    }
 }
 ?>

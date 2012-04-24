@@ -1,6 +1,6 @@
 <?php
 require_once('class/file.class.php');
-require_once('class/postgres.class.php');
+require_once('class/data_interface.class.php');
 
 class update_dukascopy {
     
@@ -29,50 +29,30 @@ class update_dukascopy {
     
     private function _updateData(){
         $aContentLines = $this->_oCachedFile->getLines();
-        //$oPostgres->beginWork();
-        $insertQuery = 'INSERT INTO "RAW_DUKASCOPY"( "RD_dukascopy_id"' // 1
-                                                . ',"RD_interval"'      // 2
-                                                . ',"RD_datetime"'      // 3
-                                                . ',"RD_min"'           // 4
-                                                . ',"RD_max"'           // 5
-                                                . ',"RD_open"'          // 6
-                                                . ',"RD_close"'         // 7
-                                                . ',"RD_volume")'       // 8
-                                        . 'VALUES ($1'
-                                                .',$2'
-                                                .',$3'
-                                                .',$4'
-                                                .',$5'
-                                                .',$6'
-                                                .',$7'
-                                                .',$8);';
-
+        
         $oDateTimeZone = new DateTimeZone('Europe/London');
         $sDateFormat = 'm/d/Y^^^H:i:s';
+        
+        $oDataInterface = new data_interface();
         
         foreach ($aContentLines as $sContentLine){
             $aContentLine = explode(';', $sContentLine);
             if ((count($aContentLine)==7) && ($oDate = DateTime::createFromFormat($sDateFormat, $aContentLine[0].'^^^'.$aContentLine[1], $oDateTimeZone))){
 
-            
-                $result = $this->_oPostgres->execute("insert_dukascopy"
-                                                    , $insertQuery
-                                                    , array(  $this->_sQuoteId
-                                                            , $this->_iInterval
-                                                            , $oDate->format('Y-m-d H:i:').'00'
-                                                            , $aContentLine[5]
-                                                            , $aContentLine[6]
-                                                            , $aContentLine[3]
-                                                            , $aContentLine[4]
-                                                            , $aContentLine[2]));
-                if ($this->_oPostgres->getLastError() != 23505){ // Duplicated keys
-                    echo $this->_oPostgres->getLastError(PGSQL_DIAG_MESSAGE_DETAIL);
-                }
+                $aResultSet = $oDataInterface->insertDukascopyData($this->_sQuoteId
+                                                                , $this->_iInterval
+                                                                , $oDate->format('Y-m-d H:i:').'00'
+                                                                , $aContentLine[5]
+                                                                , $aContentLine[6]
+                                                                , $aContentLine[3]
+                                                                , $aContentLine[4]
+                                                                , $aContentLine[2]);
+
+//                if ($this->_oPostgres->getLastError() != 23505){ // Duplicated keys
+//                    echo $this->_oPostgres->getLastError(PGSQL_DIAG_MESSAGE_DETAIL);
+//                }
             }
         }
-
-        //$oPostgres->commit();
-        //$oPostgres->rollback();
     }
     
     private function _getLastDate(){
@@ -111,5 +91,8 @@ class update_dukascopy {
     }
 }
 
+$oUpdateDukascopy = new update_dukascopy($_POST['quote_id']
+                                        ,$_POST['interval']); 
+$oUpdateDukascopy->run();
 ?>
     

@@ -108,11 +108,12 @@ class display_TPO {
 
             foreach($aDays['time_frame_data'] as $sDayKey=>$aDayData){
                 krsort($aDays['time_frame_data'][$sDayKey]['prices']);
+                ksort($aDays['time_frame_data'][$sDayKey]['TPO']);
                 $this->_mark_value_area($aDays['time_frame_data'][$sDayKey]);
             }
 
             ksort($aDays['time_frame_data']);
-
+            
             $aLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
             foreach($aDays['time_frame_data'] as $sDayKey => $aDayData){

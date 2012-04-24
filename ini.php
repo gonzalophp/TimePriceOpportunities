@@ -1,9 +1,15 @@
 <?php
 date_default_timezone_set('Europe/London');
 
-$sProjectFolder = dirname($_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF']);
-$sSmartyPath = 'smarty/Smarty-3.1.8/libs';
-set_include_path(get_include_path().';'.$sProjectFolder.';'.$sSmartyPath);
+require_once('smarty/Smarty-3.1.8/libs/Smarty.class.php');
+
+$oSmarty = new Smarty();
+$oSmarty->setTemplateDir('templates');
+$oSmarty->left_delimiter='<!--{';
+$oSmarty->right_delimiter='}-->';
+$oSmarty->caching = 0;
+$oSmarty->clearAllCache();
+
 
 define('DATA_INTERFACE', 'postgresql');
 define('DB_HOST','localhost');
