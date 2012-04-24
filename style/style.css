@@ -32,7 +32,7 @@ div.timeframedays {
     font-size: 8px;
 }
 
-div.price {
+div.price,div.price_value {
     display:block;
     padding:1px 1px 1px 1px;
     border: solid 1px #dddddd;
@@ -40,3 +40,6 @@ div.price {
     margin: 1px 1px 1px 1px;
 }
 
+div.price_value {
+    background:url("../img/back_orange_value.png") no-repeat;
+}

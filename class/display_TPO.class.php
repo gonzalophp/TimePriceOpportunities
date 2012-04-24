@@ -64,8 +64,9 @@ class display_TPO {
                 $nPriceVolume = round($nTimeVolume/($nMax-$nMin+1));
                 for($nPrice=$nMin; $nPrice<=$nMax; $nPrice++){
                     if (!array_key_exists($nPrice, $aDays['time_frame_data'][$sDayKey]['prices'])){
-                        $aDays['time_frame_data'][$sDayKey]['prices'][$nPrice] = array('volume'  => $nPriceVolume
-                                                                                        , 'letters' => ''); 
+                        $aDays['time_frame_data'][$sDayKey]['prices'][$nPrice] = array('volume'     => $nPriceVolume
+                                                                                    , 'letters'     => ''
+                                                                                    , 'value_area'  => false); 
                     }
                     else {
                         $aDays['time_frame_data'][$sDayKey]['prices'][$nPrice]['volume'] += $nPriceVolume; 
@@ -102,11 +103,12 @@ class display_TPO {
                 }
                 $aDays['time_frame_data'][$sDayKey]['total_volume']     = $iTotalVolume;
                 $aDays['time_frame_data'][$sDayKey]['rotation_factor']  = array('top'     => $iRotationFactorTop
-                                                                            , 'bottom'  => $iRotationFactorBottom);
+                                                                              , 'bottom'  => $iRotationFactorBottom);
             }
 
             foreach($aDays['time_frame_data'] as $sDayKey=>$aDayData){
                 krsort($aDays['time_frame_data'][$sDayKey]['prices']);
+                $this->_mark_value_area($aDays['time_frame_data'][$sDayKey]);
             }
 
             ksort($aDays['time_frame_data']);
@@ -137,6 +139,63 @@ class display_TPO {
         }
         
         return $aDays;
+    }
+    
+    private function _mark_value_area(&$aDayData){
+        
+        $iMaxVolumePrice=0;
+        $iMaxVolume = 0;
+        foreach($aDayData['prices'] as $nPrice => $aPriceData){
+            if($aPriceData['volume'] > $iMaxVolume) {
+                $iMaxVolume = $aPriceData['volume'];
+                $iMaxVolumePrice = $nPrice;
+            }
+        }
+        
+        $aDayData['prices'][$iMaxVolumePrice]['value_area'] = true;
+        
+        $iVolumeFound = $aDayData['prices'][$iMaxVolumePrice]['volume'];
+        $iPriceUp=$iMaxVolumePrice;
+        $iPriceDown=$iMaxVolumePrice;
+        $nSeventyPercent = ($aDayData['total_volume']*0.7);
+        
+        while($iVolumeFound < $nSeventyPercent){
+            $aVolumesAroundPrice = $this->_getVolumesAroundPrice($aDayData['prices'], $iPriceUp, $iPriceDown);
+            if ((($iVolumeFound+$aVolumesAroundPrice['up1']) < $nSeventyPercent)
+             && (($iVolumeFound+$aVolumesAroundPrice['down1']) < $nSeventyPercent)){
+                if (($aVolumesAroundPrice['up1']+$aVolumesAroundPrice['up2']) > ($aVolumesAroundPrice['down1']+$aVolumesAroundPrice['down2'])){
+                    $iVolumeFound += $aVolumesAroundPrice['up1']+$aVolumesAroundPrice['up2'];
+                    $aDayData['prices'][$iPriceUp+1]['value_area'] = true;
+                    $aDayData['prices'][$iPriceUp+2]['value_area'] = true;
+                    $iPriceUp+=2;
+                }
+                else {
+                    $iVolumeFound += $aVolumesAroundPrice['down1']+$aVolumesAroundPrice['down2'];
+                    $aDayData['prices'][$iPriceDown-1]['value_area'] = true;
+                    $aDayData['prices'][$iPriceDown-2]['value_area'] = true;
+                    $iPriceDown-=2;
+                }
+            }
+            else {
+                if ($aVolumesAroundPrice['up1'] > $aVolumesAroundPrice['down1']){
+                    $iVolumeFound += $aVolumesAroundPrice['up1'];
+                    $aDayData['prices'][$iPriceUp+1]['value_area'] = true;
+                }
+                else {
+                    $iVolumeFound += $aVolumesAroundPrice['down1'];
+                    $aDayData['prices'][$iPriceDown-1]['value_area'] = true;
+                }
+            }
+        }
+    }
+    
+    private function _getVolumesAroundPrice($aPriceData, $iPriceUp, $iPriceDown){
+        $iUp2   = array_key_exists($iPriceUp+2,$aPriceData) ? $aPriceData[$iPriceUp+2]['volume']:0;
+        $iUp1   = array_key_exists($iPriceUp+1,$aPriceData) ? $aPriceData[$iPriceUp+1]['volume']:0;
+        $iDown1 = array_key_exists($iPriceDown-1,$aPriceData) ? $aPriceData[$iPriceDown-1]['volume']:0;
+        $iDown2 = array_key_exists($iPriceDown-2,$aPriceData) ? $aPriceData[$iPriceDown-2]['volume']:0;
+       
+        return array('up2'=>$iUp2, 'up1'=>$iUp1, 'down1'=>$iDown1, 'down2'=>$iDown2);
     }
 }
 
