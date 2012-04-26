@@ -25,7 +25,7 @@ class display_TPO {
         return $this->_getDayFrameData('DUKASCOPY');
     }
 
-    private function _getDayFrameData(){
+    private function _getDayFrameData($sSource){
         $aDays       = array( 'time_frame_data'  => array()
                             , 'min_value'       => 100000000000
                             , 'max_value'       => 0
@@ -34,12 +34,20 @@ class display_TPO {
                             , 'graph_width'     => $this->_iGraphWidth);
         
         $oDataInterface = new data_interface();
-        $aResultSet = $oDataInterface->getDukascopyTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
+        
+        switch ($sSource){
+            case 'DUKASCOPY':
+                $aResultSet = $oDataInterface->getDukascopyTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
+            break;
+            case 'TELEGRAPH':
+                $aResultSet = $oDataInterface->getTelegraphTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
+            break;
+        }
 
         $sDateFormat = 'Y-m-d H:i:se';
         if (!empty($aResultSet)){
             foreach($aResultSet as $aResultSetLine){
-                $oDate = DateTime::createFromFormat($sDateFormat, $aResultSetLine['RD_datetime']);
+                $oDate = DateTime::createFromFormat($sDateFormat, $aResultSetLine['datetime']);
 
                 $sDayKey = $oDate->format('Ymd');
 
@@ -53,10 +61,10 @@ class display_TPO {
                 $nHalf = ($oDate->format('i') < 30) ? 0:1;
                 $sTPOKey = $oDate->format('H').$nHalf;
 
-                $nMin = intval($aResultSetLine['RD_min']/$aDays['price_interval']);
-                $nMax = intval($aResultSetLine['RD_max']/$aDays['price_interval']);
+                $nMin = intval($aResultSetLine['min']/$aDays['price_interval']);
+                $nMax = intval($aResultSetLine['max']/$aDays['price_interval']);
 
-                $nTimeVolume = $aResultSetLine['RD_volume'];
+                $nTimeVolume = $aResultSetLine['volume'];
 
                 if (!array_key_exists($sTPOKey, $aDays['time_frame_data'][$sDayKey]['TPO'])){ 
                     $aDays['time_frame_data'][$sDayKey]['TPO'][$sTPOKey] = array('min' => $nMin

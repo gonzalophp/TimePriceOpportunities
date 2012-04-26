@@ -20,14 +20,14 @@ class data_postgresql {
     }
     
     public function getDukascopyTPOData($sQuote, $iInterval,$iDays){
-        $sQuery = 'SELECT "RD_dukascopy_id"'
-                        .' ,"RD_interval"'
-                        .' ,"RD_datetime"'
-                        .' ,"RD_min"'
-                        .' ,"RD_max"'
-                        .' ,"RD_open"'
-                        .' ,"RD_close"'
-                        .' ,"RD_volume"'
+        $sQuery = 'SELECT "RD_dukascopy_id" as quote_id'
+                        .' ,"RD_interval"   as interval'
+                        .' ,"RD_datetime"   as datetime'
+                        .' ,"RD_min"        as min'
+                        .' ,"RD_max"        as max'
+                        .' ,"RD_open"       as open'
+                        .' ,"RD_close"      as close'
+                        .' ,"RD_volume"     as volume'
                  .' FROM public."RAW_DUKASCOPY"'
                  .' WHERE "RD_dukascopy_id" = $1'
                     .' AND "RD_interval" = $2'
@@ -39,9 +39,11 @@ class data_postgresql {
                                                                 .' LIMIT $3);';
         
         
-        return self::$_oPostgres->query($sQuery, array($sQuote
+        $a = self::$_oPostgres->query($sQuery, array($sQuote
                                                     ,$iInterval
                                                     ,$iDays));
+//        var_dump($a);exit;
+        return $a;
     }
     
     public function insertDukascopyData($RD_dukascopy_id
@@ -91,14 +93,14 @@ class data_postgresql {
     }
     
     public function getTelegraphTPOData($sQuote, $iInterval, $iDays){
-        $sQuery = 'SELECT "RT_telegraph_id"'
-                        .' ,"RT_interval"'
-                        .' ,"RT_datetime"'
-                        .' ,"RT_min"'
-                        .' ,"RT_max"'
-                        .' ,"RT_open"'
-                        .' ,"RT_close"'
-                        .' ,"RT_volume"'
+        $sQuery = 'SELECT "RT_telegraph_id" as quote_id'
+                        .' ,"RT_interval"   as interval'
+                        .' ,"RT_datetime"   as datetime'
+                        .' ,"RT_min"        as min'
+                        .' ,"RT_max"        as max'
+                        .' ,"RT_open"       as open'
+                        .' ,"RT_close"      as close'
+                        .' ,"RT_volume"     as volume'
                  .' FROM public."RAW_TELEGRAPH"'
                  .' WHERE "RT_telegraph_id" = $1'
                     .' AND "RT_interval" = $2'
