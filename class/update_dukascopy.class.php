@@ -7,7 +7,6 @@ class update_dukascopy {
     private $_sQuoteId;
     private $_iInterval;
     private $_oCachedFile;
-    private $_oPostgres;
     
     function update_dukascopy($sQuoteId, $iInterval){
         $this->_sQuoteId = $sQuoteId;
@@ -15,16 +14,8 @@ class update_dukascopy {
     }
     
     function run(){
-        $this->_oPostgres = new postgres();
-        $this->_oPostgres->connect();
         $this->_checkCachedData();
         $this->_updateData();
-        //$this->_viewData();
-    }
-    
-    private function _viewData(){
-        $result = $oPostgres->query("query_name", 'SELECT * FROM "RAW_DUKASCOPY";');
-        var_dump($result);
     }
     
     private function _updateData(){
@@ -47,10 +38,6 @@ class update_dukascopy {
                                                                 , $aContentLine[3]
                                                                 , $aContentLine[4]
                                                                 , $aContentLine[2]);
-
-//                if ($this->_oPostgres->getLastError() != 23505){ // Duplicated keys
-//                    echo $this->_oPostgres->getLastError(PGSQL_DIAG_MESSAGE_DETAIL);
-//                }
             }
         }
     }

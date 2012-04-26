@@ -6,23 +6,38 @@ body {
 fieldset {
     border: solid 1px #d5d5d5;
     background-color: #e9e8e3;
+    float:left;
 }
 
 label {
-    width: 90px;
     float: left;
     margin-top: -16px;
+    width:125px;
 }
 
 input[type=text] {
     float: left;
     border: solid 1px #d5d5d5;
-    margin: 6px 12px 20px -90px;
+    margin: 6px 12px 20px -125px;
+    width:125px;
 }
 
 select {
     float:left;
-    margin: 6px 12px 20px -90px;
+    margin: 6px 12px 20px -125px;
+    width:125px;
+}
+
+div {
+    display:table-row;
+}
+
+div.control div{
+    height: 145px;    
+}
+
+div.control div form{
+    float:left;    
 }
 
 div.timeframedays {

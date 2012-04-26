@@ -8,15 +8,24 @@ class display_TPO {
     private $_iDays;
     private $_nPriceInterval;
     
-    function display_TPO($sQuoteId, $iInterval, $iDays, $nPriceInterval, $iGraphWidth){
-        $this->_sQuoteId    = $sQuoteId;
+    function display_TPO($iInterval, $iDays, $nPriceInterval, $iGraphWidth){
         $this->_iInterval   = $iInterval;
         $this->_iDays       = $iDays;
         $this->_nPriceInterval       = $nPriceInterval;
         $this->_iGraphWidth       = $iGraphWidth;
     }
+    
+    function getDayFrameDataTelegraph($sQuoteId){
+        $this->_sQuoteId    = $sQuoteId;
+        return $this->_getDayFrameData('TELEGRAPH');
+    }
+    
+    public function getDayFrameDataDukascopy($sQuoteId) {
+        $this->_sQuoteId    = $sQuoteId;
+        return $this->_getDayFrameData('DUKASCOPY');
+    }
 
-    function getDayFrameData(){
+    private function _getDayFrameData(){
         $aDays       = array( 'time_frame_data'  => array()
                             , 'min_value'       => 100000000000
                             , 'max_value'       => 0
@@ -25,7 +34,7 @@ class display_TPO {
                             , 'graph_width'     => $this->_iGraphWidth);
         
         $oDataInterface = new data_interface();
-        $aResultSet = $oDataInterface->getTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
+        $aResultSet = $oDataInterface->getDukascopyTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
 
         $sDateFormat = 'Y-m-d H:i:se';
         if (!empty($aResultSet)){
@@ -200,10 +209,16 @@ class display_TPO {
     }
 }
 
-$oDisplayTPO = new display_TPO(  $_POST['quote_id']
-                                ,$_POST['interval']
+$oDisplayTPO = new display_TPO($_POST['interval']
                                 ,$_POST['days']
                                 ,$_POST['price_interval']
                                 ,$_POST['graph_width']); 
 
-$oPage->day_frame_tpo = $oDisplayTPO->getDayFrameData();
+if (array_key_exists('display_day_frame_tpo_dukascopy', $_POST)){
+    $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameDataDukascopy($_POST['quote_dukascopy_id']);
+}
+elseif (array_key_exists('display_day_frame_tpo_telegraph', $_POST)){
+    $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameDataTelegraph($_POST['quote_telegraph_id']);
+}
+    
+

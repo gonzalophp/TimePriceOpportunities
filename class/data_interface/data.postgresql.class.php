@@ -19,7 +19,7 @@ class data_postgresql {
         return self::$_oPostgres->query($sQuery);
     }
     
-    public function getTPOData($sQuote, $iInterval,$iDays){
+    public function getDukascopyTPOData($sQuote, $iInterval,$iDays){
         $sQuery = 'SELECT "RD_dukascopy_id"'
                         .' ,"RD_interval"'
                         .' ,"RD_datetime"'
@@ -79,6 +79,77 @@ class data_postgresql {
                                                 ,$RD_open         
                                                 ,$RD_close        
                                                 ,$RD_volume));
+    }
+    
+    
+    public function get_telegraph_quotes(){
+        $sQuery = 'SELECT "TQI_telegraph_id"'
+                        .' ,"TQI_quote_id"'
+                 .' FROM public."TELEGRAPH_QUOTES_ID";';
+        
+        return self::$_oPostgres->query($sQuery);
+    }
+    
+    public function getTelegraphTPOData($sQuote, $iInterval, $iDays){
+        $sQuery = 'SELECT "RT_telegraph_id"'
+                        .' ,"RT_interval"'
+                        .' ,"RT_datetime"'
+                        .' ,"RT_min"'
+                        .' ,"RT_max"'
+                        .' ,"RT_open"'
+                        .' ,"RT_close"'
+                        .' ,"RT_volume"'
+                 .' FROM public."RAW_TELEGRAPH"'
+                 .' WHERE "RT_telegraph_id" = $1'
+                    .' AND "RT_interval" = $2'
+                    .' AND date_trunc(\'day\',"RT_datetime") in ( SELECT distinct date_trunc(\'day\',"RT_datetime")'
+                                                                .' FROM public."RAW_TELEGRAPH" '
+                                                                .' WHERE "RT_telegraph_id" = $1'
+                                                                .' AND "RT_interval" = $2'
+                                                                .' ORDER BY date_trunc(\'day\',"RT_datetime") desc'
+                                                                .' LIMIT $3);';
+        
+        
+        return self::$_oPostgres->query($sQuery, array($sQuote
+                                                    ,$iInterval
+                                                    ,$iDays));
+    }
+    
+    public function insertTelegraphData($RT_telegraph_id
+                                        ,$RT_interval
+                                        ,$RT_datetime     
+                                        ,$RT_min       
+                                        ,$RT_max          
+                                        ,$RT_open         
+                                        ,$RT_close        
+                                        ,$RT_volume) {
+                                                    
+        $insertQuery = 'INSERT INTO "RAW_TELEGRAPH"( "RT_telegraph_id"' // 1
+                                                . ',"RT_interval"'      // 2
+                                                . ',"RT_datetime"'      // 3
+                                                . ',"RT_min"'           // 4
+                                                . ',"RT_max"'           // 5
+                                                . ',"RT_open"'          // 6
+                                                . ',"RT_close"'         // 7
+                                                . ',"RT_volume")'       // 8
+                                        . 'VALUES ($1'
+                                                .',$2'
+                                                .',$3'
+                                                .',$4'
+                                                .',$5'
+                                                .',$6'
+                                                .',$7'
+                                                .',$8);';
+        
+        return self::$_oPostgres->query($insertQuery
+                                        , array( $RT_telegraph_id
+                                                ,$RT_interval
+                                                ,$RT_datetime     
+                                                ,$RT_min       
+                                                ,$RT_max          
+                                                ,$RT_open         
+                                                ,$RT_close        
+                                                ,$RT_volume));
     }
 }
 ?>
