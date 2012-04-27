@@ -1,8 +1,4 @@
 <?php
-
-//require('class/update_telegraph.class.php');
-
-
 require_once ('ini.php');
 
 $oPage = new StdClass();

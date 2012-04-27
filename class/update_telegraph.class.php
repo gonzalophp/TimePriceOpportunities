@@ -17,6 +17,8 @@ class update_telegraph {
         $oDateTimeZone = new DateTimeZone('Europe/London');
         $sDateFormat = 'Y-m-d H:i:s';
         $aIntraday = array();
+        
+        $sToday = date('Y-m-d');
 
         for($iPage=0,$bDayFinished=false;!$bDayFinished;$iPage++){
             $sContent = $this->_getPageData($iPage);
@@ -32,7 +34,7 @@ class update_telegraph {
                 $oDate = DateTime::createFromFormat($sDateFormat, $oDOMNodeListTD->item(0)->textContent, $oDateTimeZone);
                 $sDateTimeMinute = $oDate->format('Y-m-d H:i:').'00';
 
-                if ($bDayFinished = ($sDateTimeMinute < '2012-04-26 07:40:00')){
+                if ($bDayFinished = ($sDateTimeMinute < ($sToday.' 07:40:00'))){
                     break;
                 }
 
@@ -91,7 +93,7 @@ class update_telegraph {
         return $oLocalFile->getContent();
     }
 }
-set_time_limit(120);
+set_time_limit(0);
 $oUpdateTelegraph = new update_telegraph($_POST['quote_id'],'AAAAAAAAAAA');
 $oUpdateTelegraph->run();
 ?>
