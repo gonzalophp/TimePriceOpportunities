@@ -6,6 +6,7 @@ class realPrice {
     private $_nClose;
     private $_iVolume;
     private $_aDateTimes;
+    private $_iGraphWidth;
     
     public function realPrice($sDateTime, $nMin, $nMax, $nOpen, $nClose, $iVolume){
         $this->_nMin        = $nMin;
@@ -14,6 +15,18 @@ class realPrice {
         $this->_nClose      = $nClose;
         $this->_iVolume     = $iVolume;
         $this->_aDateTimes  = array(strtotime($sDateTime));
+    }
+    
+    public function setGraphWidth($iGraphWidth){
+        $this->_iGraphWidth = $iGraphWidth;
+    }
+    
+    public function setZoom($iZoom){
+        $this->_iZoom = $iZoom;
+    }
+    
+    public function getGraphWidth(){
+        return $this->_iGraphWidth;
     }
     
     public function getDateTimes() {

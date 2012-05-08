@@ -12,6 +12,7 @@ class graphicalChart {
     private $_aGraphicalPrices;
     private $_iPlottableSpaceX;
     private $_iPlottableSpaceY;
+    private $_iPriceWidth;
     
     const FRAME_MARGIN=20;
     
@@ -31,6 +32,8 @@ class graphicalChart {
     
     public function buildGraphicalChart(realChart $oRealChart){
         $this->_oRealChart  = $oRealChart;
+        $aRealPrices = $this->_oRealChart->getPrices();
+        $this->_iPriceWidth = current($aRealPrices)->getGraphWidth();
         
         $this->_aRealChartParameters = $this->_oRealChart->getChartParameters($this->_iPlottableSpaceX);
         
@@ -46,7 +49,7 @@ class graphicalChart {
         }
         
         // Prices
-        $aRealPrices = $this->_oRealChart->getPrices();
+        
         $i=0;
         foreach($this->_aRealChartParameters['Xinterval_marks'] as $sDay=>$aTimes){
             $this->_aChartParameters['Xinterval_marks'][$sDay] = $i;
@@ -91,14 +94,14 @@ class graphicalChart {
         }
         
         foreach($this->_aChartParameters['Xinterval_marks'] as $i){
-            $xCenter = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_oRealChart->getPriceWidth()));
+            $xCenter = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_iPriceWidth));
             $this->_oImageChart->drawAbscissa($xCenter);
         }
         
 //        var_dump($this->_aGraphicalPrices);exit;
         foreach($this->_aGraphicalPrices as $i=>$oRealPrice){
             if (!is_null($oRealPrice)){
-                $x = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_oRealChart->getPriceWidth()));
+                $x = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_iPriceWidth));
                 $oRealPrice->calculateGraphParameters(array($this, 'getGraphicalY'));
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }

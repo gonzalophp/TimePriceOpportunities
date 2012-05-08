@@ -3,42 +3,27 @@ require_once('class/chart/realprice.class.php');
 
 class realChart {
     const VERTICAL_MARGIN = 5; // In % on both, top and bottom
-    const STYLE_CANDLESTICK=0;
-    const STYLE_CLOSE=1;
     
     private $_aRealPrices;
-    private $_iChartStyle;
     private $_iZoom;
     private $_iMinutesPerPrice;
-    private $_iPriceWidth;
 
-    public function realChart($iMinutesPerPrice, $iStyle=self::STYLE_CANDLESTICK, $iZoom=1){
+    public function realChart($iMinutesPerPrice, $iZoom=1){
         $this->_aRealPrices         = array();
-        $this->_iChartStyle         = $iStyle;
         $this->_iZoom               = $iZoom;
         $this->_iMinutesPerPrice    = $iMinutesPerPrice;
-        
-        if ($this->_iChartStyle == self::STYLE_CANDLESTICK){
-            $this->_iPriceWidth = 3 + (2*$this->_iZoom);
-        }
-        if ($this->_iChartStyle == self::STYLE_CLOSE){
-            $this->_iPriceWidth = 2*($this->_iZoom);
-        }
-    }
-    
-    public function getPriceWidth(){
-        return $this->_iPriceWidth;
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
         $iDateTime = strtotime($sDateTime);
         $iDateTime -= ($iDateTime % ($this->_iMinutesPerPrice*60));
         
+        $oRealPrice->setZoom($this->_iZoom);
+        
         if (array_key_exists($iDateTime, $this->_aRealPrices)){
             $this->_aRealPrices[$iDateTime]->addPrice($oRealPrice);
         }
         else {
-            $oRealPrice->setGraphWidth($this->_iPriceWidth);
             $this->_aRealPrices[$iDateTime] = $oRealPrice;
         }
     }
@@ -68,6 +53,7 @@ class realChart {
     }
     
     private function _getXIntervalMarks($iPlottableSpaceX) {
+        $iPriceWidth = current($this->_aRealPrices)->getGraphWidth();
         $aDateTimes = array_keys($this->_aRealPrices);
         
         $aDays = array();
@@ -104,7 +90,7 @@ class realChart {
             }
         }
         
-        $iAvailableGraphPoints = ((int)(string)($iPlottableSpaceX/$this->_iPriceWidth));
+        $iAvailableGraphPoints = ((int)(string)($iPlottableSpaceX/$iPriceWidth));
 //        var_dump($this->_iPriceWidth,$iAvailableGraphPoints);
         krsort($aPriceTimes);
         $aXIntervalMarks = array();

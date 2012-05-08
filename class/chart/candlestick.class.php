@@ -2,12 +2,14 @@
 require_once('class/chart/realprice.class.php');
 
 class candlestick extends realPrice {
-    
     private $_iGraphMin;
     private $_iGraphMax;
     private $_iGraphOpen;
     private $_iGraphClose;
-    private $_iGraphWidth;
+    
+    public function setZoom($iZoom){
+        $this->setGraphWidth(3 + (2*$iZoom));
+    }
     
     public function calculateGraphParameters($fGetGraphicalY){
         $this->_iGraphMin = call_user_func_array($fGetGraphicalY, array($this->getMin()));
@@ -17,20 +19,12 @@ class candlestick extends realPrice {
     }
     
     public function drawPrice($oImageChart, $x){
-        $oImageChart->drawCandlestick(($x-((int)($this->_iGraphWidth/2)))
-                                    , ($x+((int)($this->_iGraphWidth/2)))
+        $oImageChart->drawCandlestick(($x-((int)($this->getGraphWidth()/2)))
+                                    , ($x+((int)($this->getGraphWidth()/2)))
                                     , $this->_iGraphMin
                                     , $this->_iGraphMax
                                     , $this->_iGraphOpen
                                     , $this->_iGraphClose);
-    }
-    
-    public function setGraphWidth($iGraphWidth){
-        $this->_iGraphWidth = $iGraphWidth;
-    }
-    
-    public function getColor(){
-        return (($this->getClose()-$this->getOpen())>0) ? array('r'=>0, 'g'=>255, 'b'=>0):array('r'=>255, 'g'=>0, 'b'=>0);
     }
 }
 ?>

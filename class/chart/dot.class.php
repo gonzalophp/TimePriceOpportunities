@@ -1,11 +1,11 @@
 <?php
 require_once('class/chart/realprice.class.php');
 
-class dot  extends realPrice {
-    private $_iGraphWidth=1;
+class dot extends realPrice {
     private $_iGraphClose;
     
-    public function setGraphWidth($iGraphWidth){
+    public function setZoom($iZoom){
+        $this->setGraphWidth(2*$iZoom);
     }
     
     public function calculateGraphParameters($fGetGraphicalY){
@@ -14,18 +14,6 @@ class dot  extends realPrice {
     
     public function drawPrice($oImageChart, $x){
         $oImageChart->drawPoint($x, $this->_iGraphClose);
-    }
-    
-    public function getGraphWidth(){
-        return $this->_iGraphWidth;
-    }
-    
-    public function getGraphClose(){
-        return $this->_iGraphClose;
-    }
-    
-    public function setGraphClose($iGraphClose){
-        $this->_iGraphClose = $iGraphClose;
     }
 }
 ?>

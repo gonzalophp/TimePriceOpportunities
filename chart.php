@@ -14,7 +14,8 @@ $aDataPrices = _getTestData();
 $oGraphicalChart = new graphicalChart(500,350);
 
 $iMinutesPerPrice = 30;
-$oRealChart = new realChart($iMinutesPerPrice, realChart::STYLE_CANDLESTICK);
+$Zoom = 1;
+$oRealChart = new realChart($iMinutesPerPrice,$Zoom);
 foreach($aDataPrices as $aDataPrice){
     $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']
                                                                 ,$aDataPrice['min']
