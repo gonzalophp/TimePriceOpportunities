@@ -21,25 +21,25 @@ class realChart {
         if ($this->_iChartStyle == self::STYLE_CANDLESTICK){
             $this->_iPriceWidth = 3 + (2*$this->_iZoom);
         }
-        
-        
+        if ($this->_iChartStyle == self::STYLE_CLOSE){
+            $this->_iPriceWidth = 2*($this->_iZoom);
+        }
     }
     
-    public function getChartStyle(){
-        return $this->_iChartStyle;
+    public function getPriceWidth(){
+        return $this->_iPriceWidth;
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
-        if ($this->_checkPriceStyle($oRealPrice)){
-            $sDateFormat = 'Y-m-d H:i:se';
-            $oDateTime = DateTime::createFromFormat($sDateFormat, $sDateTime);
-            $iDateTime = $oDateTime->format('U');
-            $oRealPrice->setGraphWidth($this->_iPriceWidth);
-            $this->_aRealPrices[$iDateTime] = $oRealPrice;
+        $iDateTime = strtotime($sDateTime);
+        $iDateTime -= ($iDateTime % ($this->_iMinutesPerPrice*60));
+        
+        if (array_key_exists($iDateTime, $this->_aRealPrices)){
+            $this->_aRealPrices[$iDateTime]->addPrice($oRealPrice);
         }
         else {
-            echo 'ERROR: Price style incorrect';
-            exit;
+            $oRealPrice->setGraphWidth($this->_iPriceWidth);
+            $this->_aRealPrices[$iDateTime] = $oRealPrice;
         }
     }
     
@@ -50,6 +50,7 @@ class realChart {
     public function getChartParameters($iPlottableSpaceX){
         ksort($this->_aRealPrices);
         $aXIntervalMarks = $this->_getXIntervalMarks($iPlottableSpaceX);
+        
         $aExtremes = $this->_getPriceExtremes($aXIntervalMarks);
         $aYIntervalMarks = $this->_getYIntervalMarks($aExtremes);
         
@@ -85,13 +86,12 @@ class realChart {
         $aPriceTimes = array();
         foreach($aDays as $sDay=>$aTimes){
             $aPriceTimes[$sDay]=array();
-            $iMaxTime = max($aTimes);
-            $iMinTime = min($aTimes);
-            for ($i=$iMaxTime,$bStartOfDayFound=false;!$bStartOfDayFound;$i--){
-                if (($i % $iSecondsPerPrice) == 0){
-                    $aPriceTimes[$sDay][]=$i;
-                    $bStartOfDayFound = ($i <= $iMinTime);
-                }
+            
+            $iMaxTime = max($aTimes) - (max($aTimes) % $iSecondsPerPrice);
+            $iMinTime = min($aTimes) - (min($aTimes) % $iSecondsPerPrice);
+            
+            for ($i=$iMaxTime;$i>=$iMinTime; $i-=$iSecondsPerPrice){
+                $aPriceTimes[$sDay][]=$i;
             }
         }
         
@@ -105,7 +105,7 @@ class realChart {
         }
         
         $iAvailableGraphPoints = ((int)(string)($iPlottableSpaceX/$this->_iPriceWidth));
-        
+//        var_dump($this->_iPriceWidth,$iAvailableGraphPoints);
         krsort($aPriceTimes);
         $aXIntervalMarks = array();
         foreach($aPriceTimes as $sDay => $aTimes){
@@ -118,7 +118,7 @@ class realChart {
             }
             if ($iAvailableGraphPoints==0) break;
         }
-        
+//        var_dump($iPlottableSpaceX,$aXIntervalMarks, $this->_aRealPrices);exit;
         return $aXIntervalMarks;
     }
     
@@ -209,16 +209,6 @@ class realChart {
                     , 'maxX'    => $nMaxX
                     , 'minY'    => $nMinY
                     , 'maxY'    => $nMaxY);
-    }
-    
-    private function _checkPriceStyle(realPrice $oRealPrice){
-        $sPriceClass = get_class($oRealPrice);
-        switch($sPriceClass){
-            case 'candlestick':
-                $bCorrectStyle = ($this->_iChartStyle==self::STYLE_CANDLESTICK);
-            break;
-        }
-        return $bCorrectStyle;
     }
 }
 ?>

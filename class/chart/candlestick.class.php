@@ -9,44 +9,24 @@ class candlestick extends realPrice {
     private $_iGraphClose;
     private $_iGraphWidth;
     
-    public function getGraphMin(){
-        return $this->_iGraphMin;
+    public function calculateGraphParameters($fGetGraphicalY){
+        $this->_iGraphMin = call_user_func_array($fGetGraphicalY, array($this->getMin()));
+        $this->_iGraphMax = call_user_func_array($fGetGraphicalY, array($this->getMax()));
+        $this->_iGraphOpen = call_user_func_array($fGetGraphicalY, array($this->getOpen()));
+        $this->_iGraphClose = call_user_func_array($fGetGraphicalY, array($this->getClose()));
     }
     
-    public function getGraphMax(){
-        return $this->_iGraphMax;
-    }
-    
-    public function getGraphOpen(){
-        return $this->_iGraphOpen;
-    }
-    
-    public function getGraphClose(){
-        return $this->_iGraphClose;
-    }
-    
-    public function setGraphMin($iGraphMin){
-        $this->_iGraphMin = $iGraphMin;
-    }
-    
-    public function setGraphMax($iGraphMax){
-        $this->_iGraphMax = $iGraphMax;
-    }
-    
-    public function setGraphOpen($iGraphOpen){
-        $this->_iGraphOpen = $iGraphOpen;
-    }
-    
-    public function setGraphClose($iGraphClose){
-        $this->_iGraphClose = $iGraphClose;
+    public function drawPrice($oImageChart, $x){
+        $oImageChart->drawCandlestick(($x-((int)($this->_iGraphWidth/2)))
+                                    , ($x+((int)($this->_iGraphWidth/2)))
+                                    , $this->_iGraphMin
+                                    , $this->_iGraphMax
+                                    , $this->_iGraphOpen
+                                    , $this->_iGraphClose);
     }
     
     public function setGraphWidth($iGraphWidth){
         $this->_iGraphWidth = $iGraphWidth;
-    }
-    
-    public function getGraphWidth(){
-        return $this->_iGraphWidth;
     }
     
     public function getColor(){

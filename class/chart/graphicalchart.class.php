@@ -37,53 +37,49 @@ class graphicalChart {
         // Frame extremes
         $this->_aChartParameters['extremes']['minX'] = $this->_getGraphicalX($this->_aRealChartParameters['extremes']['minX']);
         $this->_aChartParameters['extremes']['maxX'] = $this->_getGraphicalX($this->_aRealChartParameters['extremes']['maxX']);
-        $this->_aChartParameters['extremes']['minY'] = $this->_getGraphicalY($this->_aRealChartParameters['extremes']['minY']);
-        $this->_aChartParameters['extremes']['maxY'] = $this->_getGraphicalY($this->_aRealChartParameters['extremes']['maxY']);
+        $this->_aChartParameters['extremes']['minY'] = $this->getGraphicalY($this->_aRealChartParameters['extremes']['minY']);
+        $this->_aChartParameters['extremes']['maxY'] = $this->getGraphicalY($this->_aRealChartParameters['extremes']['maxY']);
         
         // Y axis
         foreach ($this->_aRealChartParameters['Yinterval_marks'] as $nRealYIntervalMarks){
-            $this->_aChartParameters['Yinterval_marks'][$nRealYIntervalMarks] = $this->_getGraphicalY($nRealYIntervalMarks);
-        }
-        
-        // X Axis
-        foreach ($this->_aRealChartParameters['Xinterval_marks'] as $sDays=>$aTimes){
-            $iDateTime = strtotime($sDays);
-            $this->_aChartParameters['Xinterval_marks'][$iDateTime] = $this->_getGraphicalX($iDateTime);
+            $this->_aChartParameters['Yinterval_marks'][$nRealYIntervalMarks] = $this->getGraphicalY($nRealYIntervalMarks);
         }
         
         // Prices
         $aRealPrices = $this->_oRealChart->getPrices();
-        foreach($aRealPrices as $iDateTime => $oRealPrice){
-            switch($this->_oRealChart->getChartStyle()){
-                case realChart::STYLE_CANDLESTICK:
-                    $iGraphMin = $this->_getGraphicalY($aRealPrices[$iDateTime]->getMin());
-                    $iGraphMax = $this->_getGraphicalY($aRealPrices[$iDateTime]->getMax());
-                    $iGraphOpen = $this->_getGraphicalY($aRealPrices[$iDateTime]->getOpen());
-                    $iGraphClose = $this->_getGraphicalY($aRealPrices[$iDateTime]->getClose());
-                    
-                    $aRealPrices[$iDateTime]->setGraphMin($iGraphMin);
-                    $aRealPrices[$iDateTime]->setGraphMax($iGraphMax);
-                    $aRealPrices[$iDateTime]->setGraphOpen($iGraphOpen);
-                    $aRealPrices[$iDateTime]->setGraphClose($iGraphClose);
-                    
-                    $this->_aGraphicalPrices[$this->_getGraphicalX($iDateTime)] = $aRealPrices[$iDateTime];
-                break;
+        $i=0;
+        foreach($this->_aRealChartParameters['Xinterval_marks'] as $sDay=>$aTimes){
+            $this->_aChartParameters['Xinterval_marks'][$sDay] = $i;
+            foreach($aTimes as $iDateTime){
+                $this->_aGraphicalPrices[++$i] = (array_key_exists($iDateTime, $aRealPrices)) ? $aRealPrices[$iDateTime]:NULL;
             }
         }
+//        var_dump($aRealPrices,$this->_aRealChartParameters,$this->_aChartParameters,$this->_aGraphicalPrices);exit;
     }
     
-    private function _getGraphicalY($nRealY){
-        $iDifferenceExtremes = ($this->_aRealChartParameters['extremes']['maxY']-$this->_aRealChartParameters['extremes']['minY']);
-        $iDifferencePrice = ($this->_aRealChartParameters['extremes']['maxY']-$nRealY);
+    public function getGraphicalY($nRealY){
+        static $equationPart1 = NULL;
+        static $equationPart2 = NULL;
         
-        return (int) (string) ((self::FRAME_MARGIN-1)+($this->_iPlottableSpaceY*(($iDifferencePrice/$iDifferenceExtremes))));
+        if (is_null($equationPart1)){
+            $equationPart1 = self::FRAME_MARGIN-1+($this->_iPlottableSpaceY*($this->_aRealChartParameters['extremes']['maxY']/($this->_aRealChartParameters['extremes']['maxY']-$this->_aRealChartParameters['extremes']['minY'])));
+            $equationPart2 = $this->_iPlottableSpaceY/($this->_aRealChartParameters['extremes']['maxY']-$this->_aRealChartParameters['extremes']['minY']);
+        }
+        
+        return (int) (string) ($equationPart1-$equationPart2*$nRealY);
     }
     
     private function _getGraphicalX($nRealX){
-        $iDifferenceExtremes = ($this->_aRealChartParameters['extremes']['maxX']-$this->_aRealChartParameters['extremes']['minX']);
-        $iDifferencePrice = ($this->_aRealChartParameters['extremes']['maxX']-$nRealX);
-
-        return (int) (string) ((self::FRAME_MARGIN-1)+($this->_iPlottableSpaceX*(1-($iDifferencePrice/$iDifferenceExtremes))));
+        static $equationPart1 = NULL;
+        static $equationPart2 = NULL;
+        
+        if (is_null($equationPart1)){
+            $equationPart1 = ((self::FRAME_MARGIN-1+$this->_iPlottableSpaceX)
+                            -($this->_aRealChartParameters['extremes']['maxX']*$this->_iPlottableSpaceX/($this->_aRealChartParameters['extremes']['maxX']-$this->_aRealChartParameters['extremes']['minX'])));
+            $equationPart2 = ($this->_iPlottableSpaceX/($this->_aRealChartParameters['extremes']['maxX']-$this->_aRealChartParameters['extremes']['minX']));
+        }
+        
+        return (int) (string) ($equationPart1+$equationPart2*$nRealX);
     }
     
     public function dump(){
@@ -94,31 +90,17 @@ class graphicalChart {
             $this->_oImageChart->drawOrdinate($iGraphYIntervalMarks,$nRealYIntervalMarks);
         }
         
-        foreach($this->_aChartParameters['Xinterval_marks'] as $iGraphXIntervalMarks){
-            $this->_oImageChart->drawAbscissa($iGraphXIntervalMarks);
+        foreach($this->_aChartParameters['Xinterval_marks'] as $i){
+            $xCenter = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_oRealChart->getPriceWidth()));
+            $this->_oImageChart->drawAbscissa($xCenter);
         }
         
-        foreach($this->_aGraphicalPrices as $x=>$oRealPrice){
-            
-            switch($this->_oRealChart->getChartStyle()){
-                case realChart::STYLE_CANDLESTICK:
-//                    var_dump(($x-((int)(string)($oRealPrice->getGraphWidth()/2)))
-//                                                        , ($x+((int)(string)($oRealPrice->getGraphWidth()/2)))
-//                                                        , $oRealPrice->getGraphMin()
-//                                                        , $oRealPrice->getGraphMax()
-//                                                        , $oRealPrice->getGraphOpen()
-//                                                        , $oRealPrice->getGraphClose());exit;
-                        
-                    $this->_oImageChart->drawCandlestick(($x-((int)(string)($oRealPrice->getGraphWidth()/2)))
-                                                        , ($x+((int)(string)($oRealPrice->getGraphWidth()/2)))
-                                                        , $oRealPrice->getGraphMin()
-                                                        , $oRealPrice->getGraphMax()
-                                                        , $oRealPrice->getGraphOpen()
-                                                        , $oRealPrice->getGraphClose());
-                break;
-                case realChart::STYLE_CLOSE:
-                    $this->_oImageChart->drawPoint($x,$y);
-                break;
+//        var_dump($this->_aGraphicalPrices);exit;
+        foreach($this->_aGraphicalPrices as $i=>$oRealPrice){
+            if (!is_null($oRealPrice)){
+                $x = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_oRealChart->getPriceWidth()));
+                $oRealPrice->calculateGraphParameters(array($this, 'getGraphicalY'));
+                $oRealPrice->drawPrice($this->_oImageChart, $x);
             }
         }
         

@@ -35,10 +35,10 @@ class imageChart {
     }
     
     public function drawCandlestick($iMinX, $iMaxX, $iMinY, $iMaxY, $iYOpen, $iYClose){
-        $oColor = ($iYOpen > $iYClose) ? $this->_getColor(0, 255, 0) : $this->_getColor(255, 0, 0);
         $iXLine = (int)(string)($iMinX+(($iMaxX-$iMinX)/2));
-        
         imageline($this->_rImage, $iXLine, $iMinY, $iXLine, $iMaxY, $this->_getColor(0,0,0));
+        
+        $oColor = ($iYOpen > $iYClose) ? $this->_getColor(0, 255, 0) : $this->_getColor(255, 0, 0);
         imagefilledrectangle($this->_rImage, $iMinX, $iYOpen, $iMaxX, $iYClose, $oColor);
         imagerectangle($this->_rImage, $iMinX, $iYOpen, $iMaxX, $iYClose, $this->_getColor(0, 0, 0));
     }
