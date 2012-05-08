@@ -91,7 +91,6 @@ class realChart {
         }
         
         $iAvailableGraphPoints = ((int)(string)($iPlottableSpaceX/$iPriceWidth));
-//        var_dump($this->_iPriceWidth,$iAvailableGraphPoints);
         krsort($aPriceTimes);
         $aXIntervalMarks = array();
         foreach($aPriceTimes as $sDay => $aTimes){
@@ -104,7 +103,6 @@ class realChart {
             }
             if ($iAvailableGraphPoints==0) break;
         }
-//        var_dump($iPlottableSpaceX,$aXIntervalMarks, $this->_aRealPrices);exit;
         return $aXIntervalMarks;
     }
     

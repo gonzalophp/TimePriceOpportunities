@@ -34,6 +34,10 @@ class imageChart {
         imageellipse($this->_rImage, $x, $y,5,5, $this->_getColor(255,0,255));
     }
     
+    public function drawLine($x1,$y1,$x2,$y2){
+        imageline($this->_rImage, $x1, $y1, $x2, $y2, $this->_getColor(255,0,255));
+    }
+    
     public function drawCandlestick($iMinX, $iMaxX, $iMinY, $iMaxY, $iYOpen, $iYClose){
         $iXLine = (int)(string)($iMinX+(($iMaxX-$iMinX)/2));
         imageline($this->_rImage, $iXLine, $iMinY, $iXLine, $iMaxY, $this->_getColor(0,0,0));

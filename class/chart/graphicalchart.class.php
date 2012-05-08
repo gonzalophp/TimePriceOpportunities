@@ -8,7 +8,6 @@ class graphicalChart {
     private $_oRealChart;
     private $_oImageChart;
     private $_aChartParameters;
-    private $_aRealChartParameters;
     private $_aGraphicalPrices;
     private $_iPlottableSpaceX;
     private $_iPlottableSpaceY;
@@ -24,9 +23,6 @@ class graphicalChart {
         $this->_aChartParameters        = array( 'Xinterval_marks'  => array()
                                                 ,'Yinterval_marks'  => array()
                                                 ,'extremes'         => array());
-        $this->_aRealChartParameters    = array('Xinterval_marks'   => array()
-                                                ,'Yinterval_marks'  => array()
-                                                ,'extremes'         => array());
         $this->_aGraphicalPrices        = array();
     }
     
@@ -35,51 +31,53 @@ class graphicalChart {
         $aRealPrices = $this->_oRealChart->getPrices();
         $this->_iPriceWidth = current($aRealPrices)->getGraphWidth();
         
-        $this->_aRealChartParameters = $this->_oRealChart->getChartParameters($this->_iPlottableSpaceX);
+        $aRealChartParameters = $this->_oRealChart->getChartParameters($this->_iPlottableSpaceX);
+        
+        // Generate Equation Parameters
+        $this->getGraphicalY(0, $aRealChartParameters);
+        $this->_getGraphicalX(0, $aRealChartParameters);
         
         // Frame extremes
-        $this->_aChartParameters['extremes']['minX'] = $this->_getGraphicalX($this->_aRealChartParameters['extremes']['minX']);
-        $this->_aChartParameters['extremes']['maxX'] = $this->_getGraphicalX($this->_aRealChartParameters['extremes']['maxX']);
-        $this->_aChartParameters['extremes']['minY'] = $this->getGraphicalY($this->_aRealChartParameters['extremes']['minY']);
-        $this->_aChartParameters['extremes']['maxY'] = $this->getGraphicalY($this->_aRealChartParameters['extremes']['maxY']);
+        $this->_aChartParameters['extremes']['minX'] = $this->_getGraphicalX($aRealChartParameters['extremes']['minX']);
+        $this->_aChartParameters['extremes']['maxX'] = $this->_getGraphicalX($aRealChartParameters['extremes']['maxX']);
+        $this->_aChartParameters['extremes']['minY'] = $this->getGraphicalY($aRealChartParameters['extremes']['minY']);
+        $this->_aChartParameters['extremes']['maxY'] = $this->getGraphicalY($aRealChartParameters['extremes']['maxY']);
         
         // Y axis
-        foreach ($this->_aRealChartParameters['Yinterval_marks'] as $nRealYIntervalMarks){
+        foreach ($aRealChartParameters['Yinterval_marks'] as $nRealYIntervalMarks){
             $this->_aChartParameters['Yinterval_marks'][$nRealYIntervalMarks] = $this->getGraphicalY($nRealYIntervalMarks);
         }
         
         // Prices
-        
         $i=0;
-        foreach($this->_aRealChartParameters['Xinterval_marks'] as $sDay=>$aTimes){
+        foreach($aRealChartParameters['Xinterval_marks'] as $sDay=>$aTimes){
             $this->_aChartParameters['Xinterval_marks'][$sDay] = $i;
             foreach($aTimes as $iDateTime){
                 $this->_aGraphicalPrices[++$i] = (array_key_exists($iDateTime, $aRealPrices)) ? $aRealPrices[$iDateTime]:NULL;
             }
         }
-//        var_dump($aRealPrices,$this->_aRealChartParameters,$this->_aChartParameters,$this->_aGraphicalPrices);exit;
     }
     
-    public function getGraphicalY($nRealY){
-        static $equationPart1 = NULL;
-        static $equationPart2 = NULL;
+    public function getGraphicalY($nRealY, $aRealChartParameters=NULL){
+        static $equationPart1;
+        static $equationPart2;
         
-        if (is_null($equationPart1)){
-            $equationPart1 = self::FRAME_MARGIN-1+($this->_iPlottableSpaceY*($this->_aRealChartParameters['extremes']['maxY']/($this->_aRealChartParameters['extremes']['maxY']-$this->_aRealChartParameters['extremes']['minY'])));
-            $equationPart2 = $this->_iPlottableSpaceY/($this->_aRealChartParameters['extremes']['maxY']-$this->_aRealChartParameters['extremes']['minY']);
+        if (!is_null($aRealChartParameters)){
+            $equationPart1 = self::FRAME_MARGIN-1+($this->_iPlottableSpaceY*($aRealChartParameters['extremes']['maxY']/($aRealChartParameters['extremes']['maxY']-$aRealChartParameters['extremes']['minY'])));
+            $equationPart2 = $this->_iPlottableSpaceY/($aRealChartParameters['extremes']['maxY']-$aRealChartParameters['extremes']['minY']);
         }
         
         return (int) (string) ($equationPart1-$equationPart2*$nRealY);
     }
     
-    private function _getGraphicalX($nRealX){
-        static $equationPart1 = NULL;
-        static $equationPart2 = NULL;
+    private function _getGraphicalX($nRealX, $aRealChartParameters=NULL){
+        static $equationPart1;
+        static $equationPart2;
         
-        if (is_null($equationPart1)){
+        if (!is_null($aRealChartParameters)){
             $equationPart1 = ((self::FRAME_MARGIN-1+$this->_iPlottableSpaceX)
-                            -($this->_aRealChartParameters['extremes']['maxX']*$this->_iPlottableSpaceX/($this->_aRealChartParameters['extremes']['maxX']-$this->_aRealChartParameters['extremes']['minX'])));
-            $equationPart2 = ($this->_iPlottableSpaceX/($this->_aRealChartParameters['extremes']['maxX']-$this->_aRealChartParameters['extremes']['minX']));
+                            -($aRealChartParameters['extremes']['maxX']*$this->_iPlottableSpaceX/($aRealChartParameters['extremes']['maxX']-$aRealChartParameters['extremes']['minX'])));
+            $equationPart2 = ($this->_iPlottableSpaceX/($aRealChartParameters['extremes']['maxX']-$aRealChartParameters['extremes']['minX']));
         }
         
         return (int) (string) ($equationPart1+$equationPart2*$nRealX);
@@ -98,7 +96,6 @@ class graphicalChart {
             $this->_oImageChart->drawAbscissa($xCenter);
         }
         
-//        var_dump($this->_aGraphicalPrices);exit;
         foreach($this->_aGraphicalPrices as $i=>$oRealPrice){
             if (!is_null($oRealPrice)){
                 $x = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_iPriceWidth));

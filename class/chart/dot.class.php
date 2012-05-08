@@ -13,7 +13,17 @@ class dot extends realPrice {
     }
     
     public function drawPrice($oImageChart, $x){
-        $oImageChart->drawPoint($x, $this->_iGraphClose);
+        static $previousGraphPoint=NULL;
+        
+        $aGraphPoint = array('x'=>$x, 'y'=>$this->_iGraphClose);
+
+        $oImageChart->drawPoint($aGraphPoint['x'], $aGraphPoint['y']);
+        
+        if (!is_null($previousGraphPoint)){
+            $oImageChart->drawLine($previousGraphPoint['x'], $previousGraphPoint['y'], $aGraphPoint['x'], $aGraphPoint['y']);
+        }
+        
+        $previousGraphPoint=$aGraphPoint;
     }
 }
 ?>
