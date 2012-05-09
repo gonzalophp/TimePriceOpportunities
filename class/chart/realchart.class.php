@@ -7,23 +7,25 @@ class realChart {
     private $_aRealPrices;
     private $_iZoom;
     private $_iMinutesPerPrice;
+    private $_aIndicators;
 
-    public function realChart($iMinutesPerPrice, $iZoom=1){
+    public function realChart($iMinutesPerPrice, $iZoom=1, $aIndicators=array()){
         $this->_aRealPrices         = array();
         $this->_iZoom               = $iZoom;
         $this->_iMinutesPerPrice    = $iMinutesPerPrice;
+        $this->_aIndicators         = $aIndicators;
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
         $iDateTime = strtotime($sDateTime);
         $iDateTime -= ($iDateTime % ($this->_iMinutesPerPrice*60));
         
-        $oRealPrice->setZoom($this->_iZoom);
-        
         if (array_key_exists($iDateTime, $this->_aRealPrices)){
             $this->_aRealPrices[$iDateTime]->addPrice($oRealPrice);
         }
         else {
+            $oRealPrice->setZoom($this->_iZoom);
+            $oRealPrice->setIndicators($this->_aIndicators);
             $this->_aRealPrices[$iDateTime] = $oRealPrice;
         }
     }
@@ -34,6 +36,7 @@ class realChart {
     
     public function getChartParameters($iPlottableSpaceX){
         ksort($this->_aRealPrices);
+        $this->_buildIndicators();
         $aXIntervalMarks = $this->_getXIntervalMarks($iPlottableSpaceX);
         
         $aExtremes = $this->_getPriceExtremes($aXIntervalMarks);
@@ -52,10 +55,18 @@ class realChart {
                     , 'Yinterval_marks' => $aYIntervalMarks);
     }
     
+    private function _buildIndicators(){
+        $oPreviousRealPrice = NULL;
+        foreach ($this->_aRealPrices as $oRealPrice){
+            $oRealPrice->buildIndicators($oPreviousRealPrice);
+            $oPreviousRealPrice = $oRealPrice;
+        }
+    }
+    
     private function _getXIntervalMarks($iPlottableSpaceX) {
-        $iPriceWidth = current($this->_aRealPrices)->getGraphWidth();
         $aDateTimes = array_keys($this->_aRealPrices);
-        
+        $iPriceWidth = reset($this->_aRealPrices)->getGraphWidth();
+//        var_dump($this->_aRealPrices);exit;
         $aDays = array();
         foreach($aDateTimes as $iDateTime){
             $sDay = date('Y-m-d',$iDateTime);

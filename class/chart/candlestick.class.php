@@ -11,11 +11,11 @@ class candlestick extends realPrice {
         $this->setGraphWidth(3 + (2*$iZoom));
     }
     
-    public function calculateGraphParameters($fGetGraphicalY){
-        $this->_iGraphMin = call_user_func_array($fGetGraphicalY, array($this->getMin()));
-        $this->_iGraphMax = call_user_func_array($fGetGraphicalY, array($this->getMax()));
-        $this->_iGraphOpen = call_user_func_array($fGetGraphicalY, array($this->getOpen()));
-        $this->_iGraphClose = call_user_func_array($fGetGraphicalY, array($this->getClose()));
+    public function calculateGraphParameters($oGraphicalChart){
+        $this->_iGraphMin = $oGraphicalChart->getGraphicalY($this->getMin());
+        $this->_iGraphMax = $oGraphicalChart->getGraphicalY($this->getMax());
+        $this->_iGraphOpen = $oGraphicalChart->getGraphicalY($this->getOpen());
+        $this->_iGraphClose = $oGraphicalChart->getGraphicalY($this->getClose());
     }
     
     public function drawPrice($oImageChart, $x){

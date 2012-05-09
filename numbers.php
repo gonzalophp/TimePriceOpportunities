@@ -1,4 +1,28 @@
 <?php
+
+
+$a = array(1);
+
+$a[] = 5;
+$a[] = 8;
+$a[] = 9;
+$a[] = 15;
+
+var_dump($a);
+
+array_shift($a);
+$a[] = 10;
+var_dump($a);
+
+$a[] = 7;
+var_dump($a);
+
+array_shift($a);
+$a[] = 6;
+var_dump($a);
+
+exit;
+
 set_time_limit(1);
 
 $nMin=6240.3;

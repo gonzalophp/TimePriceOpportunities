@@ -46,13 +46,13 @@ function _getTestData(){
                             , 'min'     => 6301
                             , 'max'     => 6335
                             , 'open'    => 6310
-                            , 'close'   => 6321
+                            , 'close'   => 6310
                             , 'volume'  => 63)
                     ,array('datetime' => '2012-04-22 16:00:00+01'
                             , 'min'     => 6275
                             , 'max'     => 6329
                             , 'open'    => 6322
-                            , 'close'   => 6285
+                            , 'close'   => 6280
                             , 'volume'  => 110)
                     ,array('datetime' => '2012-04-22 16:30:00+01'
                             , 'min'     => 6252
@@ -139,7 +139,8 @@ function _getTestData(){
                             , 'open'    => 6337
                             , 'close'   => 6384
                             , 'volume'  => 180)
-                    ,array('datetime' => '2012-04-26 09:05:00+01'
+                    ,
+            array('datetime' => '2012-04-26 09:05:00+01'
                             , 'min'     => 6379
                             , 'max'     => 6389
                             , 'open'    => 6380
@@ -157,7 +158,7 @@ function _getTestData(){
                             , 'min'     => 6299
                             , 'max'     => 6347
                             , 'open'    => 6320
-                            , 'close'   => 6330
+                            , 'close'   => 6340
                             , 'volume'  => 140));
     }
 ?>

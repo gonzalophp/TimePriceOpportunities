@@ -1,4 +1,6 @@
 <?php
+require_once('class/chart/indicators.class.php');
+
 class realPrice {
     private $_nMin;
     private $_nMax;
@@ -7,6 +9,7 @@ class realPrice {
     private $_iVolume;
     private $_aDateTimes;
     private $_iGraphWidth;
+    private $_oIndicators;
     
     public function realPrice($sDateTime, $nMin, $nMax, $nOpen, $nClose, $iVolume){
         $this->_nMin        = $nMin;
@@ -17,12 +20,25 @@ class realPrice {
         $this->_aDateTimes  = array(strtotime($sDateTime));
     }
     
-    public function setGraphWidth($iGraphWidth){
-        $this->_iGraphWidth = $iGraphWidth;
+    public function setIndicators($aIndicators){
+        $this->_oIndicators = new indicators($aIndicators);
     }
     
-    public function setZoom($iZoom){
-        $this->_iZoom = $iZoom;
+    public function buildIndicators($oPreviousRealPrice){
+        $this->_oIndicators->buildIndicators($oPreviousRealPrice, $this);
+    }
+    
+    public function calculateGraphIndicators($oGraphicalChart){
+        $this->_oIndicators->calculateGraphIndicators($oGraphicalChart);
+    }
+    
+    public function getIndicators(){
+        return $this->_oIndicators;
+    }
+            
+    
+    public function setGraphWidth($iGraphWidth){
+        $this->_iGraphWidth = $iGraphWidth;
     }
     
     public function getGraphWidth(){

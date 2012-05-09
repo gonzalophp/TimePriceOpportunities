@@ -99,11 +99,16 @@ class graphicalChart {
         foreach($this->_aGraphicalPrices as $i=>$oRealPrice){
             if (!is_null($oRealPrice)){
                 $x = (($this->_iMaxX-self::FRAME_MARGIN)-($i*$this->_iPriceWidth));
-                $oRealPrice->calculateGraphParameters(array($this, 'getGraphicalY'));
+                $oRealPrice->calculateGraphParameters($this);
+                $oRealPrice->calculateGraphIndicators($this);
+                $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
+                
+//                var_dump($oRealPrice->getClose(),$oRealPrice->getIndicators()->getData());
+                
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }
         }
-        
+//        exit;
         $this->_oImageChart->dumpImage();
     }
 }

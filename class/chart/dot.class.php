@@ -8,8 +8,8 @@ class dot extends realPrice {
         $this->setGraphWidth(2*$iZoom);
     }
     
-    public function calculateGraphParameters($fGetGraphicalY){
-        $this->_iGraphClose = call_user_func_array($fGetGraphicalY, array($this->getClose()));
+    public function calculateGraphParameters($oGraphicalChart){
+        $this->_iGraphClose = $oGraphicalChart->getGraphicalY($this->getClose());
     }
     
     public function drawPrice($oImageChart, $x){
@@ -20,7 +20,7 @@ class dot extends realPrice {
         $oImageChart->drawPoint($aGraphPoint['x'], $aGraphPoint['y']);
         
         if (!is_null($previousGraphPoint)){
-            $oImageChart->drawLine($previousGraphPoint['x'], $previousGraphPoint['y'], $aGraphPoint['x'], $aGraphPoint['y']);
+            $oImageChart->drawLine($previousGraphPoint['x'], $previousGraphPoint['y'], $aGraphPoint['x'], $aGraphPoint['y'], array('r'=>0, 'g'=>0, 'b'=>0));
         }
         
         $previousGraphPoint=$aGraphPoint;
