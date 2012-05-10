@@ -34,6 +34,10 @@ class realChart {
         return $this->_aRealPrices;
     }
     
+    public function getIndicators(){
+        return $this->_aIndicators;
+    }
+    
     public function getChartParameters($iPlottableSpaceX){
         ksort($this->_aRealPrices);
         $this->_buildIndicators();

@@ -15,7 +15,9 @@ $oGraphicalChart = new graphicalChart(500,350);
 
 $iMinutesPerPrice = 30;
 $Zoom = 1;
-$aIndicators = array('ma'=>array(10,20), 'bol'=> array('n'=>10,'std_dev'=>2));
+$aIndicators = array('ma'   => array(10,20)
+                    ,'bol'  => array('n'=>10,'std_dev'=>2)
+                    ,'rsi'  => array(6));
 $oRealChart = new realChart($iMinutesPerPrice, $Zoom, $aIndicators);
 foreach($aDataPrices as $aDataPrice){
     $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']

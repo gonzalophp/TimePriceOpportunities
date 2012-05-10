@@ -27,7 +27,12 @@ class graphicalChart {
     }
     
     public function buildGraphicalChart(realChart $oRealChart){
-        $this->_oRealChart  = $oRealChart;
+        $this->_oRealChart = $oRealChart;
+        $aIndicators = $this->_oRealChart->getIndicators();
+        if (array_key_exists('rsi', $aIndicators)){
+            
+        }
+                
         $aRealPrices = $this->_oRealChart->getPrices();
         $this->_iPriceWidth = current($aRealPrices)->getGraphWidth();
         
@@ -103,7 +108,8 @@ class graphicalChart {
                 $oRealPrice->calculateGraphIndicators($this);
                 $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
                 
-//                var_dump($oRealPrice->getClose(),$oRealPrice->getIndicators()->getData());
+                $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+//                var_dump($oRealPrice->getClose(),$aIndicatorsData['RSI']);
                 
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }

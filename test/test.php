@@ -32,7 +32,7 @@ function _getTestData(){
                             , 'min'     => 6275
                             , 'max'     => 6329
                             , 'open'    => 6322
-                            , 'close'   => 6285
+                            , 'close'   => 6328
                             , 'volume'  => 110)
                     ,array('datetime' => '2012-04-21 16:30:00+01'
                             , 'min'     => 6252
