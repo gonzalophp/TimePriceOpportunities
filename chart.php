@@ -11,7 +11,8 @@ require_once('class/chart/dot.class.php');
 require_once('test/test.php');
 $aDataPrices = _getTestData();
 
-$oGraphicalChart = new graphicalChart(500,350);
+$iMargin = 20;
+$oGraphicalChart = new graphicalChart(500,350, $iMargin);
 
 $iMinutesPerPrice = 30;
 $Zoom = 1;
@@ -29,7 +30,7 @@ foreach($aDataPrices as $aDataPrice){
 }
 $oGraphicalChart->buildGraphicalChart($oRealChart);
 
-$oGraphicalChart->dump();
+$oGraphicalChart->draw();
 
 
 ?>

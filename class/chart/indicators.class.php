@@ -40,18 +40,18 @@ class indicators {
     public function calculateGraphIndicators($oGraphicalChart){
         foreach($this->_aIndicators['ma'] as $iMAPrices){
             if (count($this->_aData['prices_so_far'])>=$iMAPrices){
-                $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY($this->_aData['MA'][$iMAPrices]['real'],'prices');
+                $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['MA'][$iMAPrices]['real']);
             }
         }
         
         if (array_key_exists('bol', $this->_aIndicators) && !is_null($this->_aData['BOL'])){
-            $this->_aData['BOL']['graph']['up'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['up'],'prices');
-            $this->_aData['BOL']['graph']['down'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['down'],'prices');
+            $this->_aData['BOL']['graph']['up'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['BOL']['real']['up']);
+            $this->_aData['BOL']['graph']['down'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['BOL']['real']['down']);
         }
         
         if (array_key_exists('rsi', $this->_aIndicators) && !is_null($this->_aData['RSI'])){
             foreach($this->_aData['RSI'] as $n=>$aRSIData){
-                $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY($this->_aData['RSI'][$n]['real'],'rsi');
+                $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY('rsi',$this->_aData['RSI'][$n]['real']);
             }
         }
     }

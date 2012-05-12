@@ -9,7 +9,7 @@ class dot extends realPrice {
     }
     
     public function calculateGraphParameters($oGraphicalChart){
-        $this->_iGraphClose = $oGraphicalChart->getGraphicalY($this->getClose());
+        $this->_iGraphClose = $oGraphicalChart->getGraphicalY('prices',$this->getClose());
     }
     
     public function drawPrice($oImageChart, $x){

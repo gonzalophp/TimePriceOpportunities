@@ -34,6 +34,11 @@ class realChart {
         return $this->_aRealPrices;
     }
     
+    public function getPriceWidth(){
+        return reset($this->_aRealPrices)->getGraphWidth();
+    }
+    
+    
     public function getIndicators(){
         return $this->_aIndicators;
     }
