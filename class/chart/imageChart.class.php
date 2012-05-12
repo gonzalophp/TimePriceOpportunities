@@ -18,7 +18,11 @@ class imageChart {
                                    ,'y2' => $this->_iHeight-($this->_iFrame+1));
         $this->_rImage = imagecreate($this->_iWidth, $this->_iHeight);
         imagefill($this->_rImage, 0, 0 , $this->_getColor(230, 230, 230));
-        imagerectangle($this->_rImage, $this->_aChartArea['x1'], $this->_aChartArea['y1'], $this->_aChartArea['x2'], $this->_aChartArea['y2'], $this->_getColor(128, 128, 128));
+//        imagerectangle($this->_rImage, $this->_aChartArea['x1'], $this->_aChartArea['y1'], $this->_aChartArea['x2'], $this->_aChartArea['y2'], $this->_getColor(128, 128, 128));
+    }
+    
+    public function drawFrame($x1,$y1,$x2,$y2){
+        imagerectangle($this->_rImage, $x1, $y1, $x2, $y2, $this->_getColor(128, 128, 128));
     }
     
     public function drawOrdinate($iHeight,$nRealYIntervalMarks){
@@ -26,8 +30,8 @@ class imageChart {
         imagestring($this->_rImage, 1, $this->_iWidth-$this->_iFrame+1, $iHeight-4, $nRealYIntervalMarks, $this->_getColor(50, 50, 50));
     }
     
-    public function drawAbscissa($iLeft){
-        imageline($this->_rImage, $iLeft, $this->_aChartArea['y1']-2, $iLeft, $this->_aChartArea['y2']+2, $this->_getColor(180,180,180));
+    public function drawAbscissa($iLeft, $y1, $y2){
+        imageline($this->_rImage, $iLeft, $y1, $iLeft, $y2, $this->_getColor(180,180,180));
     }
     
     public function drawPoint($x,$y) {

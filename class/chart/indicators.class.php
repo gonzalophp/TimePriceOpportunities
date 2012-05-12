@@ -40,13 +40,19 @@ class indicators {
     public function calculateGraphIndicators($oGraphicalChart){
         foreach($this->_aIndicators['ma'] as $iMAPrices){
             if (count($this->_aData['prices_so_far'])>=$iMAPrices){
-                $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY($this->_aData['MA'][$iMAPrices]['real']);
+                $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY($this->_aData['MA'][$iMAPrices]['real'],'prices');
             }
         }
         
         if (array_key_exists('bol', $this->_aIndicators) && !is_null($this->_aData['BOL'])){
-            $this->_aData['BOL']['graph']['up'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['up']);
-            $this->_aData['BOL']['graph']['down'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['down']);
+            $this->_aData['BOL']['graph']['up'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['up'],'prices');
+            $this->_aData['BOL']['graph']['down'] = $oGraphicalChart->getGraphicalY($this->_aData['BOL']['real']['down'],'prices');
+        }
+        
+        if (array_key_exists('rsi', $this->_aIndicators) && !is_null($this->_aData['RSI'])){
+            foreach($this->_aData['RSI'] as $n=>$aRSIData){
+                $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY($this->_aData['RSI'][$n]['real'],'rsi');
+            }
         }
     }
     
@@ -73,6 +79,20 @@ class indicators {
                                         , $iPreviousX
                                         , $aPreviousIndicatorsData['BOL']['graph']['down']
                                         , array('r' => 0, 'g' => 25, 'b' => 255));
+            }
+        }
+        
+        if (array_key_exists('rsi', $this->_aIndicators) && (!is_null($this->_aData['RSI']))){
+            
+            foreach($this->_aData['RSI'] as $n=>$aRSIData){
+                if (!is_null($aPreviousIndicatorsData) && !is_null($this->_aData['RSI']) && !is_null($aPreviousIndicatorsData['RSI'][$n])){ 
+                    
+//                    var_dump($aPreviousIndicatorsData['RSI'],$this->_aData['RSI']);exit;
+                    $oImageChart->drawLine($x, $this->_aData['RSI'][$n]['graph']
+                                            , $iPreviousX
+                                            , $aPreviousIndicatorsData['RSI'][$n]['graph']
+                                            , array('r' => 0, 'g' => 25, 'b' => 255));
+                }
             }
         }
         
