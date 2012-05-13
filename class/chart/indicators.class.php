@@ -51,7 +51,9 @@ class indicators {
         
         if (array_key_exists('rsi', $this->_aIndicators) && !is_null($this->_aData['RSI'])){
             foreach($this->_aData['RSI'] as $n=>$aRSIData){
-                $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY('rsi',$this->_aData['RSI'][$n]['real']);
+                if (!is_null($this->_aData['RSI'][$n]['real'])){
+                    $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY('rsi',$this->_aData['RSI'][$n]['real']);
+                }
             }
         }
     }
@@ -83,11 +85,8 @@ class indicators {
         }
         
         if (array_key_exists('rsi', $this->_aIndicators) && (!is_null($this->_aData['RSI']))){
-            
-            foreach($this->_aData['RSI'] as $n=>$aRSIData){
-                if (!is_null($aPreviousIndicatorsData) && !is_null($this->_aData['RSI']) && !is_null($aPreviousIndicatorsData['RSI'][$n])){ 
-                    
-//                    var_dump($aPreviousIndicatorsData['RSI'],$this->_aData['RSI']);exit;
+            foreach(array_keys($this->_aData['RSI']) as $n){
+                if (!is_null($aPreviousIndicatorsData) && !is_null($this->_aData['RSI']) && !is_null($this->_aData['RSI'][$n]['graph'])){ 
                     $oImageChart->drawLine($x, $this->_aData['RSI'][$n]['graph']
                                             , $iPreviousX
                                             , $aPreviousIndicatorsData['RSI'][$n]['graph']

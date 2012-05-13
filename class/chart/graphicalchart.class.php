@@ -6,7 +6,6 @@ class graphicalChart {
     private $_aCharts;
     private $_aImageSize;
     private $_iMargin;
-    private $_iPriceWidth;
     private $_oRealChart;
     
     public function graphicalChart($iMaxX,$iMaxY,$iMargin){
@@ -67,7 +66,7 @@ class graphicalChart {
             }
         }
         
-        
+        // X Marks
         $i=0;
         $this->_aCharts['prices']['graph']['x_marks'] = array();
         foreach($this->_aCharts['prices']['real']['timeframe'] as $sDay=>$aTimes){
@@ -75,7 +74,7 @@ class graphicalChart {
             $i += count($aTimes);
         }
         
-        
+        // Indicators
         $aAvailableIndicatorsCharts = array('rsi','sto');
         $aIndicatorsCharts = array_intersect(array_keys($this->_aCharts), $aAvailableIndicatorsCharts);
         $iChartDistribution = 10+2*count($aIndicatorsCharts);
@@ -117,13 +116,20 @@ class graphicalChart {
                                     , $this->_aCharts[$sChart]['graph']['corners']['y']
                                     , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
                                     , $this->_aCharts[$sChart]['graph']['corners']['y']+$this->_aCharts[$sChart]['graph']['corners']['h']);
-            foreach($aChartParameters['graph']['y_marks'] as $iGraphYMark){
+            foreach($aChartParameters['graph']['y_marks'] as $i=>$iGraphYMark){
                 $this->_oImageChart->drawLine($this->_aCharts[$sChart]['graph']['corners']['x']
                                      , $iGraphYMark
                                      , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
                                      , $iGraphYMark
                                      , array('r' => 180, 'g' => 180, 'b' => 180));
-//                imagestring($this->_rImage, 1, $this->_iWidth-$this->_iFrame+1, $iHeight-4, $nRealYIntervalMarks, $this->_getColor(50, 50, 50));
+                if ($sChart == 'prices'){
+                    $this->_oImageChart->drawLabel(1
+                                                , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']+2
+                                                , $iGraphYMark-3
+                                                , $this->_aCharts['prices']['real']['y_marks'][$i]
+                                                , array('r'=>50,'g'=>50,'b'=>50));
+                }
+                
             }
         }
         
@@ -152,7 +158,7 @@ class graphicalChart {
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }
         }
-        $this->_oImageChart->dumpImage();
+        $this->_oImageChart->drawImage();
     }
 }
 ?>

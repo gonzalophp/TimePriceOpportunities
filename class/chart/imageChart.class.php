@@ -30,6 +30,10 @@ class imageChart {
         imagestring($this->_rImage, 1, $this->_iWidth-$this->_iFrame+1, $iHeight-4, $nRealYIntervalMarks, $this->_getColor(50, 50, 50));
     }
     
+    public function drawLabel($iFontSize, $x, $y, $sLabel, $aColor){
+        imagestring($this->_rImage, $iFontSize, $x, $y, $sLabel, $this->_getColor($aColor['r'], $aColor['g'], $aColor['b']));
+    }
+    
     public function drawAbscissa($iLeft, $y1, $y2){
         imageline($this->_rImage, $iLeft, $y1, $iLeft, $y2, $this->_getColor(180,180,180));
     }
@@ -51,7 +55,7 @@ class imageChart {
         imagerectangle($this->_rImage, $iMinX, $iYOpen, $iMaxX, $iYClose, $this->_getColor(0, 0, 0));
     }
     
-    public function dumpImage() {
+    public function drawImage() {
         header("Content-type: image/png");
         imagepng($this->_rImage);
         imagedestroy($this->_rImage);
