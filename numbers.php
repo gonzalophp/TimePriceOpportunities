@@ -1,6 +1,14 @@
 <?php
 
 
+
+
+$a = array(1 => 'a', 5 => 'b', 3 => 'c', 400=> 'd');
+
+$b = array_slice($a, 2,3);
+
+var_dump($b);exit;
+
 $a = array(1);
 
 $a[] = 5;

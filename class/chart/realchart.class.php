@@ -65,10 +65,8 @@ class realChart {
     }
     
     private function _buildIndicators(){
-        $oPreviousRealPrice = NULL;
         foreach ($this->_aRealPrices as $oRealPrice){
-            $oRealPrice->buildIndicators($oPreviousRealPrice);
-            $oPreviousRealPrice = $oRealPrice;
+            $oRealPrice->buildIndicators();
         }
     }
     

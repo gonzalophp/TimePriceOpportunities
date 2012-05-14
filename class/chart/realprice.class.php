@@ -24,8 +24,8 @@ class realPrice {
         $this->_oIndicators = new indicators($aIndicators);
     }
     
-    public function buildIndicators($oPreviousRealPrice){
-        $this->_oIndicators->buildIndicators($oPreviousRealPrice, $this);
+    public function buildIndicators(){
+        $this->_oIndicators->buildIndicators($this);
     }
     
     public function calculateGraphIndicators($oGraphicalChart){

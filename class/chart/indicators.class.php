@@ -3,34 +3,19 @@ require_once('class/chart/realprice.class.php');
 
 class indicators {
     private $_aIndicators;
-    private $_aData = array('prices_so_far' => array()
-                           ,'MA'            => array() );
+    private $_aData = array();
+    private static $_aRealPrices;
     
     public function indicators($aIndicators){
         $this->_aIndicators = $aIndicators;
     }
     
-    public function buildIndicators($oPreviousRealPrice, realprice $oRealPrice){
-        if (!is_null($oPreviousRealPrice)){
-            $aPreviousRealPriceIndicatorsData = $oPreviousRealPrice->getIndicators()->getData();
-            $this->_aData['prices_so_far'] = $aPreviousRealPriceIndicatorsData['prices_so_far'];
-            
-            if (array_key_exists('RSI', $aPreviousRealPriceIndicatorsData)){
-                foreach($aPreviousRealPriceIndicatorsData['RSI'] as $n=>$aRSIData){
-                    $this->_aData['RSI'][$n] = array('real'    => NULL
-                                                    ,'graph'    => NULL
-                                                    ,'RS_Gain'  => NULL
-                                                    ,'RS_Loss'  => NULL
-                                                    ,'previous' => array('RS_Gain' => $aRSIData['RS_Gain']
-                                                                        ,'RS_Loss' => $aRSIData['RS_Loss']));
-                }
-            }
-        }
-        $this->_aData['prices_so_far'][] = $oRealPrice->getClose();
-        
+    public function buildIndicators(realprice $oRealPrice){
+        self::$_aRealPrices[] = $oRealPrice;
         if (array_key_exists('ma', $this->_aIndicators)) $this->_aData['MA'] = $this->_getMA();
         if (array_key_exists('bol', $this->_aIndicators)) $this->_aData['BOL'] = $this->_getBollinger();
         if (array_key_exists('rsi', $this->_aIndicators)) $this->_aData['RSI'] = $this->_getRSI();
+        if (array_key_exists('sto', $this->_aIndicators)) $this->_aData['STO'] = $this->_getSTO();
     }
     
     public function getData(){
@@ -39,7 +24,7 @@ class indicators {
     
     public function calculateGraphIndicators($oGraphicalChart){
         foreach($this->_aIndicators['ma'] as $iMAPrices){
-            if (count($this->_aData['prices_so_far'])>=$iMAPrices){
+            if ((count(self::$_aRealPrices)>=$iMAPrices) && !is_null($this->_aData['MA'][$iMAPrices]['real'])){
                 $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['MA'][$iMAPrices]['real']);
             }
         }
@@ -54,6 +39,13 @@ class indicators {
                 if (!is_null($this->_aData['RSI'][$n]['real'])){
                     $this->_aData['RSI'][$n]['graph'] = $oGraphicalChart->getGraphicalY('rsi',$this->_aData['RSI'][$n]['real']);
                 }
+            }
+        }
+        
+        if (array_key_exists('sto', $this->_aIndicators) && !is_null($this->_aData['STO'])){
+            if (!is_null($this->_aData['STO']['real']['k'])){
+                $this->_aData['STO']['graph']['k'] = $oGraphicalChart->getGraphicalY('sto',$this->_aData['STO']['real']['k']);
+                $this->_aData['STO']['graph']['d'] = $oGraphicalChart->getGraphicalY('sto',$this->_aData['STO']['real']['d']);
             }
         }
     }
@@ -95,8 +87,72 @@ class indicators {
             }
         }
         
+        if (array_key_exists('sto', $this->_aIndicators) && (!is_null($this->_aData['STO']))){
+            if (!is_null($aPreviousIndicatorsData) && !is_null($this->_aData['STO']) && !is_null($this->_aData['STO']['graph']['k'])){ 
+                $oImageChart->drawLine($x, $this->_aData['STO']['graph']['k']
+                                        , $iPreviousX
+                                        , $aPreviousIndicatorsData['STO']['graph']['k']
+                                        , array('r' => 0, 'g' => 25, 'b' => 255));
+                $oImageChart->drawLine($x, $this->_aData['STO']['graph']['d']
+                                        , $iPreviousX
+                                        , $aPreviousIndicatorsData['STO']['graph']['d']
+                                        , array('r' => 255, 'g' => 25, 'b' => 255));
+            }
+        }
+        
         $aPreviousIndicatorsData = $this->_aData;
         $iPreviousX = $x;
+    }
+    
+    private function _getSTO(){
+        $this->_aData['STO'] = array('real'     => array('k' => NULL
+                                                        ,'d' => NULL)
+                                    ,'graph'    => array('k' => NULL
+                                                        ,'d' => NULL));
+        
+        $iMinPricesRequired = max($this->_aIndicators['sto']);
+        
+        if (count(self::$_aRealPrices) >= $iMinPricesRequired){
+            $oRealPrice = self::$_aRealPrices[count(self::$_aRealPrices)-1];
+            $aNPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-$iMinPricesRequired), $iMinPricesRequired);
+            
+            $nMax = NULL;
+            $nMin = NULL;
+            
+            for($i=$iMinPricesRequired-1; $this->_aIndicators['sto']['n'] >= ($iMinPricesRequired-$i) ; $i--){
+                if (is_null($nMax)){
+                    $nMax = $aNPrices[$i]->getMax();
+                    $nMin = $aNPrices[$i]->getMin();
+                }
+                else {
+                    $nMax = max($nMax, $aNPrices[$i]->getMax());
+                    $nMin = min($nMin, $aNPrices[$i]->getMin());
+                }
+            }
+            
+            $nFastK = 100*(($oRealPrice->getClose()-$nMin)/($nMax-$nMin));
+            
+            $nPreviousKSum = $nFastK;
+            for($i=$iMinPricesRequired-2; $this->_aIndicators['sto']['k'] >= ($iMinPricesRequired-$i) ; $i--){
+                $aPreviousIndicatorsData = $aNPrices[$i]->getIndicators()->getData();
+                $nPreviousKSum += $aPreviousIndicatorsData['STO']['real']['k'];
+            }
+            
+            $nFinalK = $nPreviousKSum/$this->_aIndicators['sto']['k'];
+            
+            $nPreviousKSum = $nFinalK;
+            for($i=$iMinPricesRequired-2; $this->_aIndicators['sto']['d'] >= ($iMinPricesRequired-$i) ; $i--){
+                $aPreviousIndicatorsData = $aNPrices[$i]->getIndicators()->getData();
+                $nPreviousKSum += $aPreviousIndicatorsData['STO']['real']['k'];
+            }
+            
+            $nFinalD = $nPreviousKSum/$this->_aIndicators['sto']['d'];
+            
+            $this->_aData['STO']['real']['k'] = $nFinalK;
+            $this->_aData['STO']['real']['d'] = $nFinalD;
+            
+            return $this->_aData['STO'];
+        }
     }
     
     private function _getRSI($iPrices=NULL){
@@ -109,47 +165,52 @@ class indicators {
             
             if (!array_key_exists($n, $this->_aData['RSI'])){
                 $this->_aData['RSI'][$n] =array( 'real'   => NULL
+                                                , 'graph' => NULL
                                                 , 'RS_Gain' => NULL
-                                                , 'RS_Loss' => NULL
-                                                , 'previous'=> array('RS_Gain'  => NULL
-                                                                    ,'RS_Los'   => NULL));
+                                                , 'RS_Loss' => NULL);
             }
             
             if (is_null($this->_aData['RSI'][$n]['real'])){
-                if(is_null($this->_aData['RSI'][$n]['previous']['RS_Gain'])){
-                    if(count($this->_aData['prices_so_far']) == $n){
-                        $aNPrices = array_slice($this->_aData['prices_so_far'], (count($this->_aData['prices_so_far'])-$n), $n);
-                        $nPreviousPrice = NULL;
-                        $nLoss = 0;
-                        $nGain = 0;
-                        foreach($aNPrices as $nPrice){
-                            if (!is_null($nPreviousPrice)){
-                                $nDifference = $nPreviousPrice-$nPrice;
-                                if ($nDifference>0){
-                                    $nGain += $nDifference;
-                                }
-                                else {
-                                    $nLoss += -$nDifference;
-                                }
+                if (count(self::$_aRealPrices) == $n){
+                    $aNPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-$n), $n);
+                    $nPreviousPrice = NULL;
+                    $nLoss = 0;
+                    $nGain = 0;
+                    foreach($aNPrices as $oRealPrice){
+                        if (!is_null($nPreviousPrice)){
+                            $nDifference = $nPreviousPrice-$oRealPrice->getClose();
+                            if ($nDifference>0){
+                                $nGain += $nDifference;
                             }
-                            $nPreviousPrice = $nPrice;
+                            else {
+                                $nLoss += -$nDifference;
+                            }
                         }
-                        $this->_aData['RSI'][$n]['RS_Gain'] = $nGain/$n;
-                        $this->_aData['RSI'][$n]['RS_Loss'] = $nLoss/$n;
+                        $nPreviousPrice = $oRealPrice->getClose();
+                    }
+                    $this->_aData['RSI'][$n]['RS_Gain'] = $nGain/$n;
+                    $this->_aData['RSI'][$n]['RS_Loss'] = $nLoss/$n;
+                    if ($this->_aData['RSI'][$n]['RS_Loss'] == 0){
+                        $this->_aData['RSI'][$n]['real'] = 100;
+                    }
+                    else {
                         $this->_aData['RSI'][$n]['real']   = 100 - (100/(1+($this->_aData['RSI'][$n]['RS_Gain']/$this->_aData['RSI'][$n]['RS_Loss'])));
                     }
-                    elseif(count($this->_aData['prices_so_far']) > $n){
-                        echo 'RSI error: previous rs not found';
-                    }
                 }
-                else {
-                    $aNPrices = array_slice($this->_aData['prices_so_far'], (count($this->_aData['prices_so_far'])-2), 2);
-                    $nDifference = $aNPrices[1]-$aNPrices[0];
+                elseif(count(self::$_aRealPrices) > $n){
+                    $aPreviousRealPriceIndicatorsData = self::$_aRealPrices[count(self::$_aRealPrices)-2]->getIndicators()->getData();
+                    $aNPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-2), 2);
+                    $nDifference = $aNPrices[1]->getClose()-$aNPrices[0]->getClose();
                     $nGainLastPrice = ($nDifference>0) ? $nDifference : 0;
                     $nLossLastPrice = ($nDifference<0) ? -$nDifference : 0;
-                    $this->_aData['RSI'][$n]['RS_Gain'] = ((($n-1)*$this->_aData['RSI'][$n]['previous']['RS_Gain'])+$nGainLastPrice)/$n;
-                    $this->_aData['RSI'][$n]['RS_Loss'] = ((($n-1)*$this->_aData['RSI'][$n]['previous']['RS_Loss'])+$nLossLastPrice)/$n;
-                    $this->_aData['RSI'][$n]['real']   = 100 - (100/(1+($this->_aData['RSI'][$n]['RS_Gain']/$this->_aData['RSI'][$n]['RS_Loss'])));
+                    $this->_aData['RSI'][$n]['RS_Gain'] = ((($n-1)*$aPreviousRealPriceIndicatorsData['RSI'][$n]['RS_Gain'])+$nGainLastPrice)/$n;
+                    $this->_aData['RSI'][$n]['RS_Loss'] = ((($n-1)*$aPreviousRealPriceIndicatorsData['RSI'][$n]['RS_Loss'])+$nLossLastPrice)/$n;
+                    if ($this->_aData['RSI'][$n]['RS_Loss'] == 0){
+                        $this->_aData['RSI'][$n]['real'] = 100;
+                    }
+                    else {
+                        $this->_aData['RSI'][$n]['real']   = 100 - (100/(1+($this->_aData['RSI'][$n]['RS_Gain']/$this->_aData['RSI'][$n]['RS_Loss'])));
+                    }
                 }
             }
         }
@@ -167,12 +228,12 @@ class indicators {
             $this->_aData['STD_DEV'] = array();
         }
         if (!array_key_exists($n, $this->_aData['STD_DEV'])){
-            if(count($this->_aData['prices_so_far']) >= $n){
-                $aNPrices = array_slice($this->_aData['prices_so_far'], (count($this->_aData['prices_so_far'])-$n), $n);
+            if (count(self::$_aRealPrices)>=$n){
+                $aNPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-$n), $n);
                 $nSum = 0;
                 $nMA = $this->_getMA($n);
-                foreach($aNPrices as $nPrice){
-                    $nSum += pow(($nPrice - $nMA),2);
+                foreach($aNPrices as $oRealPrice){
+                    $nSum += pow(($oRealPrice->getClose() - $nMA),2);
                 }
 
                 $this->_aData['STD_DEV'][$n] = sqrt($nSum/$n);
@@ -202,6 +263,9 @@ class indicators {
     }
     
     private function _getMA($n=NULL){
+        if (!array_key_exists('MA', $this->_aData)){
+            $this->_aData['MA'] = array();
+        }
         if (is_null($n)){
             $aMAColors = array(  array('r'=>255, 'g'=>0, 'b'=>0)
                                 ,array('r'=>0, 'g'=>255, 'b'=>0)
@@ -213,17 +277,35 @@ class indicators {
                     list($iKey,$aColor) = each($aMAColors);
                     $this->_aData['MA'][$iMAPrices] = array('real' => NULL, 'graph' => NULL, 'color' => $aColor);
                 }
-
-                $this->_aData['MA'][$iMAPrices]['real'] = (count($this->_aData['prices_so_far'])>=$iMAPrices) 
-                                                            ? (array_sum(array_slice($this->_aData['prices_so_far'], (count($this->_aData['prices_so_far'])-$iMAPrices), $iMAPrices))/$iMAPrices) : NULL;
+                
+                if (count(self::$_aRealPrices)>=$iMAPrices){
+                    $aRealPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-$iMAPrices), $iMAPrices);
+                    $nSum = 0;
+                    foreach($aRealPrices as $oRealPrice){
+                        $nSum += $oRealPrice->getClose();
+                    }
+                    $this->_aData['MA'][$iMAPrices]['real'] = $nSum/$iMAPrices;
+                }
+                else {
+                    $this->_aData['MA'][$iMAPrices]['real'] = NULL;
+                }
             }
             
             return $this->_aData['MA'];
         }
         else {
             if (!array_key_exists($n, $this->_aData['MA'])){
-                $this->_aData['MA'][$n]['real'] = (count($this->_aData['prices_so_far']) >= $n) 
-                                                    ? (array_sum(array_slice($this->_aData['prices_so_far'], (count($this->_aData['prices_so_far'])-$n), $n))/$n) : NULL;
+                if (count(self::$_aRealPrices)>=$n){
+                    $aRealPrices = array_slice(self::$_aRealPrices, (count(self::$_aRealPrices)-$n), $n);
+                    $nSum = 0;
+                    foreach($aRealPrices as $oRealPrice){
+                        $nSum += $oRealPrice->getClose();
+                    }
+                    $this->_aData['MA'][$n]['real'] = $nSum/$n;
+                }
+                else {
+                    $this->_aData['MA'][$n]['real'] = NULL;
+                }
             }
             return $this->_aData['MA'][$n]['real'];
         }

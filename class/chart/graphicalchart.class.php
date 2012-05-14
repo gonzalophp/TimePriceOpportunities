@@ -5,30 +5,41 @@ require_once('class/chart/imagechart.class.php');
 class graphicalChart {
     private $_aCharts;
     private $_aImageSize;
-    private $_iMargin;
     private $_oRealChart;
     
-    public function graphicalChart($iMaxX,$iMaxY,$iMargin){
-        $this->_oImageChart = new imageChart($iMaxX, $iMaxY, $iMargin);
+    const GRAPH_MARGIN=20;
+    
+    public function graphicalChart($iMaxX,$iMaxY){
+        $this->_oImageChart = new imageChart($iMaxX, $iMaxY, self::GRAPH_MARGIN);
         $this->_aImageSize  = array('x' => $iMaxX, 'y' => $iMaxY);
-        $this->_iMargin     = $iMargin;
     }
     
     public function buildGraphicalChart(realChart $oRealChart){
         $this->_oRealChart = $oRealChart;
         
-        $oPlottableSize = $this->getPlottableSize();
+        $oPlottableSize = $this->_getPlottableSize();
         $aRealChartParameters = $this->_oRealChart->getChartParameters($oPlottableSize['x']);
 
-        $this->addChartPrices('DAX', $aRealChartParameters['extremes'], $aRealChartParameters['Yinterval_marks'], $aRealChartParameters['Xinterval_marks']);
-        $this->addChart('rsi', 'RSI 14', array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
-        $this->buildGraphicalChartParameters();
+        $this->_addChartPrices('DAX', $aRealChartParameters['extremes'], $aRealChartParameters['Yinterval_marks'], $aRealChartParameters['Xinterval_marks']);
+        $this->_addChart('rsi', 'RSI 14', array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
+        $this->_addChart('sto', 'Stochastic 14 3 5', array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
+        $this->_buildGraphicalChartParameters();
     }
     
-    public function getPlottableSize($sChart=NULL){
+    public function getGraphicalY($sChart,$nRealY){
+        return (int) (string) ($this->_aCharts[$sChart]['graph']['eq']['part1']-$this->_aCharts[$sChart]['graph']['eq']['part2']*$nRealY);
+    }
+    
+    public function draw(){
+        $this->_drawCharts();
+        $this->_drawPrices();
+        $this->_oImageChart->drawImage();
+    }
+    
+    private function _getPlottableSize($sChart=NULL){
         if(is_null($sChart)){
-            return array('x' => ($this->_aImageSize['x']-2*$this->_iMargin)
-                        ,'y' => ($this->_aImageSize['y']-2*$this->_iMargin));
+            return array('x' => ($this->_aImageSize['x']-2*self::GRAPH_MARGIN)
+                        ,'y' => ($this->_aImageSize['y']-2*self::GRAPH_MARGIN));
         }
         else {
             return array('x' => $this->_aCharts[$sChart]['graph']['corners']['w']
@@ -36,13 +47,13 @@ class graphicalChart {
         }
     }
     
-    public function addChartPrices($sCaption, $aRealExtremes, $aRealYMarks, $aRealTimeFrame){
-        $this->addChart('prices', $sCaption, $aRealExtremes, $aRealYMarks, array());
+    private function _addChartPrices($sCaption, $aRealExtremes, $aRealYMarks, $aRealTimeFrame){
+        $this->_addChart('prices', $sCaption, $aRealExtremes, $aRealYMarks, array());
         $this->_aCharts['prices']['real']['timeframe'] = $aRealTimeFrame;
         $this->_aCharts['prices']['real']['prices'] = $this->_oRealChart->getPrices();
     }
     
-    public function addChart($sChart, $sCaption, $aRealExtremes, $aRealYMarks, $aColors){
+    private function _addChart($sChart, $sCaption, $aRealExtremes, $aRealYMarks, $aColors){
         $this->_aCharts[$sChart] = array('caption'  => $sCaption
                                         ,'real'     => array('extremes' => $aRealExtremes
                                                             ,'y_marks'  => $aRealYMarks)
@@ -53,11 +64,7 @@ class graphicalChart {
                                                             ,'colors'   => $aColors));
     }
     
-    public function getTimeFrame(){
-        return $this->_aCharts['prices']['real']['timeframe'];
-    }
-    
-    public function buildGraphicalChartParameters(){
+    private function _buildGraphicalChartParameters(){
         // Prices
         $i=0;
         foreach($this->_aCharts['prices']['real']['timeframe'] as $sDay=>$aTimes){
@@ -77,20 +84,21 @@ class graphicalChart {
         // Indicators
         $aAvailableIndicatorsCharts = array('rsi','sto');
         $aIndicatorsCharts = array_intersect(array_keys($this->_aCharts), $aAvailableIndicatorsCharts);
+        
         $iChartDistribution = 10+2*count($aIndicatorsCharts);
         
-        $this->_aCharts['prices']['graph']['corners'] = array('x' => $this->_iMargin
-                                                            ,'y' => $this->_iMargin
-                                                            ,'w' => $this->_aImageSize['x']-2*$this->_iMargin
-                                                            ,'h' => (int)(string)(($this->_aImageSize['y']-(2*$this->_iMargin))*(10/$iChartDistribution)));
+        $this->_aCharts['prices']['graph']['corners'] = array('x' => self::GRAPH_MARGIN
+                                                            ,'y' => self::GRAPH_MARGIN
+                                                            ,'w' => $this->_aImageSize['x']-2*self::GRAPH_MARGIN
+                                                            ,'h' => (int)(string)(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(10/$iChartDistribution)-5));
         $nChartIndicator = 0;
         foreach(array_keys($this->_aCharts) as $sChart){
             if ($sChart!='prices'){
-                $this->_aCharts[$sChart]['graph']['corners'] = array('x' => $this->_iMargin
-                                                                    ,'y' => (int)(string)($this->_iMargin+(($this->_aImageSize['y']-(2*$this->_iMargin))*(10/$iChartDistribution))
-                                                                            +($nChartIndicator*(($this->_aImageSize['y']-(2*$this->_iMargin))*(2/$iChartDistribution))))
-                                                                    ,'w' => $this->_aImageSize['x']-2*$this->_iMargin
-                                                                    ,'h' => (int)(string)(($this->_aImageSize['y']-(2*$this->_iMargin))*(2/$iChartDistribution)));
+                $this->_aCharts[$sChart]['graph']['corners'] = array('x' => self::GRAPH_MARGIN
+                                                                    ,'y' => (int)(string)(self::GRAPH_MARGIN+(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(10/$iChartDistribution))
+                                                                            +($nChartIndicator*(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(2/$iChartDistribution))))
+                                                                    ,'w' => $this->_aImageSize['x']-2*self::GRAPH_MARGIN
+                                                                    ,'h' => (int)(string)(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(2/$iChartDistribution)-1));
                 $nChartIndicator++;        
             }
             $this->_aCharts[$sChart]['graph']['eq']['part1'] = $this->_aCharts[$sChart]['graph']['corners']['y']-1+($this->_aCharts[$sChart]['graph']['corners']['h']*($this->_aCharts[$sChart]['real']['extremes']['maxY']/($this->_aCharts[$sChart]['real']['extremes']['maxY']-$this->_aCharts[$sChart]['real']['extremes']['minY'])));
@@ -102,15 +110,7 @@ class graphicalChart {
         }
     }
     
-    public function getGraphicalY($sChart,$nRealY){
-        return (int) (string) ($this->_aCharts[$sChart]['graph']['eq']['part1']-$this->_aCharts[$sChart]['graph']['eq']['part2']*$nRealY);
-    }
-    
-    public function getChartParameters($sChart){
-        return $this->_aCharts[$sChart];
-    }
-    
-    public function drawCharts(){
+    private function _drawCharts(){
         foreach($this->_aCharts as $sChart=>$aChartParameters){
             $this->_oImageChart->drawFrame($this->_aCharts[$sChart]['graph']['corners']['x']
                                     , $this->_aCharts[$sChart]['graph']['corners']['y']
@@ -135,7 +135,7 @@ class graphicalChart {
         
         $iPriceWidth = $this->_oRealChart->getPriceWidth();
         $bFirstAbscissa = true;
-        foreach($this->_aCharts['prices']['graph']['x_marks'] as $sDay=>$i){
+        foreach($this->_aCharts['prices']['graph']['x_marks'] as $i){
             if (!$bFirstAbscissa){
                 $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth))
                                                 , $this->_aCharts['prices']['graph']['corners']['x']
@@ -145,20 +145,25 @@ class graphicalChart {
         }
     }
     
-    public function draw(){
-        $this->drawCharts();
-        $iPriceWidth = $this->_oRealChart->getPriceWidth();
+    private function _drawPrices(){
         
         foreach($this->_aCharts['prices']['graph']['prices'] as $i=>$oRealPrice){
             if (!is_null($oRealPrice)){
-                $x = (($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w'])-($i*$iPriceWidth));
                 $oRealPrice->calculateGraphParameters($this);
                 $oRealPrice->calculateGraphIndicators($this);
+            }
+        }
+        
+        $iPriceWidth = $this->_oRealChart->getPriceWidth();
+        $iRightExtreme = $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w'];
+        foreach($this->_aCharts['prices']['graph']['prices'] as $i=>$oRealPrice){
+            if (!is_null($oRealPrice)){
+                $x = ($iRightExtreme-($i*$iPriceWidth));
                 $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }
         }
-        $this->_oImageChart->drawImage();
+//        exit;
     }
 }
 ?>
