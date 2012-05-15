@@ -18,7 +18,8 @@ $Zoom = 1;
 $aIndicators = array('ma'   => array(10,20)
                     ,'bol'  => array('n'=>10,'std_dev'=>2)
                     ,'rsi'  => array(4)
-                    ,'sto'  => array('n' => 7, 'k' => 3, 'd'=> 5));
+                    ,'sto'  => array('n' => 7, 'k' => 3, 'd'=> 5)
+                    ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
 $oRealChart = new realChart($iMinutesPerPrice, $Zoom, $aIndicators);
 foreach($aDataPrices as $aDataPrice){
     $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']

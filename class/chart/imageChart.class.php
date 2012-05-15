@@ -38,8 +38,8 @@ class imageChart {
         imageline($this->_rImage, $iLeft, $y1, $iLeft, $y2, $this->_getColor(180,180,180));
     }
     
-    public function drawPoint($x,$y) {
-        imageellipse($this->_rImage, $x, $y,5,5, $this->_getColor(255,0,255));
+    public function drawPoint($x,$y, $aColor) {
+        imagefilledrectangle($this->_rImage, $x, $y, $x+3, $y+3, $this->_getColor($aColor['r'],$aColor['g'],$aColor['b']));
     }
     
     public function drawLine($x1,$y1,$x2,$y2, $aColor){

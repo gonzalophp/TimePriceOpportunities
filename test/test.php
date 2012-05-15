@@ -101,7 +101,35 @@ function _getTestData(){
                             , 'volume'  => 300),
             
             
-                    array('datetime' => '2012-04-25 15:30:00+01'
+                    array('datetime' => '2012-04-25 13:30:00+01'
+                            , 'min'     => 6301
+                            , 'max'     => 6335
+                            , 'open'    => 6310
+                            , 'close'   => 6321
+                            , 'volume'  => 63)
+                    ,
+            array('datetime' => '2012-04-25 14:00:00+01'
+                            , 'min'     => 6301
+                            , 'max'     => 6335
+                            , 'open'    => 6310
+                            , 'close'   => 6321
+                            , 'volume'  => 63)
+                    ,
+            array('datetime' => '2012-04-25 14:30:00+01'
+                            , 'min'     => 6301
+                            , 'max'     => 6335
+                            , 'open'    => 6310
+                            , 'close'   => 6321
+                            , 'volume'  => 63)
+                    ,
+            array('datetime' => '2012-04-25 15:00:00+01'
+                            , 'min'     => 6301
+                            , 'max'     => 6335
+                            , 'open'    => 6310
+                            , 'close'   => 6321
+                            , 'volume'  => 63)
+                    ,
+            array('datetime' => '2012-04-25 15:30:00+01'
                             , 'min'     => 6301
                             , 'max'     => 6335
                             , 'open'    => 6310
