@@ -332,94 +332,78 @@ class indicators {
             $aPreviousRealPriceIndicatorsData = $oPreviousRealPrice->getIndicators()->getData();
 
             if (is_null($aPreviousRealPriceIndicatorsData['SAR'])){
-                if ($oRealPrice->getClose() > $oPreviousRealPrice->getClose()){ // New New UP
+                $bTredUp = ($oRealPrice->getClose() > $oPreviousRealPrice->getClose());
+                $nAf = $this->_aIndicators['sar']['af0'];
+                
+                if ($bTredUp){ // New New UP
                     $nSAR = min($oPreviousRealPrice->getMin(),$oRealPrice->getMin());
                     $nEP = max($oPreviousRealPrice->getMax(),$oRealPrice->getMax());
-                    $sTrend = 'up';
                 }
-                else {                                                           // New New Down
+                else {         // New New Down
                     $nSAR = max($oPreviousRealPrice->getMax(),$oRealPrice->getMax());
                     $nEP = min($oPreviousRealPrice->getMin(),$oRealPrice->getMin());
-                    $sTrend = 'down';
                 }
-                
-                $nAf = $this->_aIndicators['sar']['af0'];
             }
             else {
-                $bNewTrend = false;
-                if ($aPreviousRealPriceIndicatorsData['SAR']['real']['trend'] == 'up'){
-                    $bNewTrend = ($oRealPrice->getMin() < $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']);
-                }
-                else {
-                    $bNewTrend = ($oRealPrice->getMax() > $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']);
-                }
+                $bTredUp = ($aPreviousRealPriceIndicatorsData['SAR']['real']['trend'] == 'up');
+                
+                $bNewTrend = ($bTredUp && ($oRealPrice->getMin() < $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']))
+                          || (!$bTredUp && ($oRealPrice->getMax() > $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']));
                 
                 if ($bNewTrend){
-                    if ($aPreviousRealPriceIndicatorsData['SAR']['real']['trend'] == 'down'){ // New UP
+                    if (!$bTredUp){ // New UP
                         $nEP = max($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMax());
                         $nSAR = min($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMin());
-                        $sTrend = 'up';
-                        $nAf = $this->_aIndicators['sar']['af0'];
                     }
-                    else {                                                                    // New Down
+                    else {         // New Down
                         $nEP = min($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMin());
                         $nSAR = max($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMax());
-                        $sTrend = 'down';
-                        $nAf = $this->_aIndicators['sar']['af0'];
                     }
+                    $nAf = $this->_aIndicators['sar']['af0'];
+                    $bTredUp = !$bTredUp;
                 }
                 else { // No new trend
-                    if ($aPreviousRealPriceIndicatorsData['SAR']['real']['trend'] == 'up'){
+                    $nAf = $aPreviousRealPriceIndicatorsData['SAR']['real']['af'];
+                    if ($bTredUp){
                         $nEP = max($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMax());
-                        
-                        if ($nEP > $aPreviousRealPriceIndicatorsData['SAR']['real']['ep']){
-                            $nAf = $aPreviousRealPriceIndicatorsData['SAR']['real']['af']+$this->_aIndicators['sar']['afX'];
-                            if ($nAf > $this->_aIndicators['sar']['afMax']){
-                                $nAf = $this->_aIndicators['sar']['afMax'];
-                            }
-                        }
-                        else {
-                            $nAf = $aPreviousRealPriceIndicatorsData['SAR']['real']['af'];
-                        }
-                        
-                        $nSAR = $aPreviousRealPriceIndicatorsData['SAR']['real']['psar'] + $nAf*($nEP - $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']);
+                        $nAf += ($nEP > $aPreviousRealPriceIndicatorsData['SAR']['real']['ep']) ? $this->_aIndicators['sar']['afX']:0;
+                    }
+                    else {
+                        $nEP = min($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMin());
+                        $nAf += ($nEP < $aPreviousRealPriceIndicatorsData['SAR']['real']['ep']) ? $this->_aIndicators['sar']['afX']:0;
+                    }
                     
+                    if ($nAf > $this->_aIndicators['sar']['afMax']){
+                        $nAf = $this->_aIndicators['sar']['afMax'];
+                    }
+                    
+                    $nSAR = $aPreviousRealPriceIndicatorsData['SAR']['real']['psar'] + $nAf*($nEP - $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']);
+                    
+                    if ($bTredUp){
                         $nMinLast2Prices = min($oPreviousRealPrice->getMin(),$oRealPrice->getMin());
                         if ($nSAR > $nMinLast2Prices){
                             $nSAR = $nMinLast2Prices;
                         }
-                        $sTrend = 'up';
                     }
                     else {
-                        $nEP = min($aPreviousRealPriceIndicatorsData['SAR']['real']['ep'], $oRealPrice->getMin());
-                        
-                        if ($nEP < $aPreviousRealPriceIndicatorsData['SAR']['real']['ep']){
-                            $nAf = $aPreviousRealPriceIndicatorsData['SAR']['real']['af']+$this->_aIndicators['sar']['afX'];
-                            if ($nAf > $this->_aIndicators['sar']['afMax']){
-                                $nAf = $this->_aIndicators['sar']['afMax'];
-                            }
-                        }
-                        else {
-                            $nAf = $aPreviousRealPriceIndicatorsData['SAR']['real']['af'];
-                        }
-                        
-                        $nSAR = $aPreviousRealPriceIndicatorsData['SAR']['real']['psar'] + $nAf*($nEP - $aPreviousRealPriceIndicatorsData['SAR']['real']['psar']);
-                    
                         $nMaxLast2Prices = max($oPreviousRealPrice->getMax(),$oRealPrice->getMax());
                         if ($nSAR < $nMaxLast2Prices){
                             $nSAR = $nMaxLast2Prices;
                         }
-                        $sTrend = 'down';
                     }
                 }
             }
-            $this->_aData['SAR'] = array('real'     => array('trend'    => $sTrend
+            
+            $this->_aData['SAR'] = array('real'     => array('trend'    => ($bTredUp ? 'up' : 'down')
                                                             ,'af'       => $nAf
                                                             ,'ep'       => $nEP
                                                             ,'psar'     => $nSAR)
                                         ,'graph'    => NULL);
             
             return $this->_aData['SAR'];
+        }
+        else {
+            return NULL;
         }
     }
 }
