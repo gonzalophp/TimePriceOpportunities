@@ -6,6 +6,7 @@ class graphicalChart {
     private $_aCharts;
     private $_aImageSize;
     private $_oRealChart;
+    private $_aAvailableIndicatorsCharts = array('rsi','sto');
     
     const GRAPH_MARGIN=20;
     
@@ -20,9 +21,14 @@ class graphicalChart {
         $oPlottableSize = $this->_getPlottableSize();
         $aRealChartParameters = $this->_oRealChart->getChartParameters($oPlottableSize['x']);
 
-        $this->_addChartPrices('DAX', $aRealChartParameters['extremes'], $aRealChartParameters['Yinterval_marks'], $aRealChartParameters['Xinterval_marks']);
-        $this->_addChart('rsi', 'RSI 14', array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
-        $this->_addChart('sto', 'Stochastic 14 3 5', array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
+        $this->_addChartPrices($this->_oRealChart->getQuote(), $aRealChartParameters['extremes'], $aRealChartParameters['Yinterval_marks'], $aRealChartParameters['Xinterval_marks']);
+        
+        $aIndicatorsSettings = $this->_oRealChart->getIndicatorsSettings();
+        foreach($this->_aAvailableIndicatorsCharts as $sChart){
+            if (array_key_exists($sChart, $aIndicatorsSettings)){
+                $this->_addChart($sChart, $sChart.' '.implode(' ', $aIndicatorsSettings[$sChart]), array('minY'=>0,'maxY'=>100), array(30,70), array( 0 => array('r'=>0, 'g'=>0, 'b'=>0)));
+            }
+        }
         $this->_buildGraphicalChartParameters();
     }
     
@@ -82,8 +88,7 @@ class graphicalChart {
         }
         
         // Indicators
-        $aAvailableIndicatorsCharts = array('rsi','sto');
-        $aIndicatorsCharts = array_intersect(array_keys($this->_aCharts), $aAvailableIndicatorsCharts);
+        $aIndicatorsCharts = array_intersect(array_keys($this->_aCharts), $this->_aAvailableIndicatorsCharts);
         
         $iChartDistribution = 10+2*count($aIndicatorsCharts);
         
@@ -113,15 +118,19 @@ class graphicalChart {
     private function _drawCharts(){
         foreach($this->_aCharts as $sChart=>$aChartParameters){
             $this->_oImageChart->drawFrame($this->_aCharts[$sChart]['graph']['corners']['x']
-                                    , $this->_aCharts[$sChart]['graph']['corners']['y']
-                                    , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
-                                    , $this->_aCharts[$sChart]['graph']['corners']['y']+$this->_aCharts[$sChart]['graph']['corners']['h']);
+                                        , $this->_aCharts[$sChart]['graph']['corners']['y']
+                                        , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
+                                        , $this->_aCharts[$sChart]['graph']['corners']['y']+$this->_aCharts[$sChart]['graph']['corners']['h']);
+            $this->_oImageChart->drawLabel(3, $this->_aCharts[$sChart]['graph']['corners']['x']+5
+                                            , $this->_aCharts[$sChart]['graph']['corners']['y']+5
+                                            , $this->_aCharts[$sChart]['caption']
+                                            , array('r'=>0,'g'=>0,'b'=>0));
             foreach($aChartParameters['graph']['y_marks'] as $i=>$iGraphYMark){
                 $this->_oImageChart->drawLine($this->_aCharts[$sChart]['graph']['corners']['x']
-                                     , $iGraphYMark
-                                     , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
-                                     , $iGraphYMark
-                                     , array('r' => 180, 'g' => 180, 'b' => 180));
+                                            , $iGraphYMark
+                                            , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
+                                            , $iGraphYMark
+                                            , array('r' => 180, 'g' => 180, 'b' => 180));
                 if ($sChart == 'prices'){
                     $this->_oImageChart->drawLabel(1
                                                 , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']+2
@@ -158,7 +167,7 @@ class graphicalChart {
         $iRightExtreme = $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w'];
         foreach($this->_aCharts['prices']['graph']['prices'] as $i=>$oRealPrice){
             if (!is_null($oRealPrice)){
-                $x = ($iRightExtreme-($i*$iPriceWidth));
+                $x = (int)(string)($iRightExtreme-($i*$iPriceWidth));
                 $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }

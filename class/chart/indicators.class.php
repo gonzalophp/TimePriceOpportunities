@@ -24,9 +24,11 @@ class indicators {
     }
     
     public function calculateGraphIndicators($oGraphicalChart){
-        foreach($this->_aIndicators['ma'] as $iMAPrices){
-            if ((count(self::$_aRealPrices)>=$iMAPrices) && !is_null($this->_aData['MA'][$iMAPrices]['real'])){
-                $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['MA'][$iMAPrices]['real']);
+        if (array_key_exists('ma', $this->_aIndicators)){
+            foreach($this->_aIndicators['ma'] as $iMAPrices){
+                if ((count(self::$_aRealPrices)>=$iMAPrices) && !is_null($this->_aData['MA'][$iMAPrices]['real'])){
+                    $this->_aData['MA'][$iMAPrices]['graph'] = $oGraphicalChart->getGraphicalY('prices',$this->_aData['MA'][$iMAPrices]['real']);
+                }
             }
         }
         

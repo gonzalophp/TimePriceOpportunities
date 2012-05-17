@@ -56,13 +56,25 @@ class imageChart {
     }
     
     public function drawImage() {
-        header("Content-type: image/png");
-        imagepng($this->_rImage);
+//        header("Content-type: image/png");
+        imagepng($this->_rImage,'img/chart.png');
+//        imagepng($this->_rImage);
         imagedestroy($this->_rImage);
     }
     
     private function _getColor($r, $g, $b){
-        return imagecolorallocate($this->_rImage, $r, $g, $b);
+        static $aSavedColors=array();
+        
+        $sColor = serialize(array($r,$g,$b));
+        
+        if (!array_key_exists($sColor, $aSavedColors)){
+            $aSavedColors[$sColor] = imagecolorallocate($this->_rImage, $r, $g, $b);
+            return $aSavedColors[$sColor];
+        }
+        else {
+            return $aSavedColors[$sColor];
+        }
+        
     }
 }
 ?>

@@ -228,5 +228,3 @@ if (array_key_exists('display_day_frame_tpo_dukascopy', $_POST)){
 elseif (array_key_exists('display_day_frame_tpo_telegraph', $_POST)){
     $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameDataTelegraph($_POST['quote_telegraph_id']);
 }
-    
-

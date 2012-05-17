@@ -23,5 +23,6 @@
         <input type="text" name="graph_width" value="100"/>
         <input name="display_day_frame_tpo_dukascopy" type="submit" value="Display Dukascopy TPOs"/>
         <input name="display_day_frame_tpo_telegraph" type="submit" value="Display Telegraph TPOs"/>
+        <input name="chart_dukascopy" type="submit" value="Chart Dukascopy"/>
     </fieldset>
 </form>

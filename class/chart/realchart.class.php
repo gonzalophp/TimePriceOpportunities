@@ -7,13 +7,15 @@ class realChart {
     private $_aRealPrices;
     private $_iZoom;
     private $_iMinutesPerPrice;
-    private $_aIndicators;
+    private $_aIndicatorsSettings;
+    private $_sQuote;
 
-    public function realChart($iMinutesPerPrice, $iZoom=1, $aIndicators=array()){
+    public function realChart($sQuote,$iMinutesPerPrice, $iZoom=1, $aIndicators=array()){
+        $this->_sQuote            = $sQuote;
         $this->_aRealPrices         = array();
         $this->_iZoom               = $iZoom;
         $this->_iMinutesPerPrice    = $iMinutesPerPrice;
-        $this->_aIndicators         = $aIndicators;
+        $this->_aIndicatorsSettings = $aIndicators;
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
@@ -25,9 +27,13 @@ class realChart {
         }
         else {
             $oRealPrice->setZoom($this->_iZoom);
-            $oRealPrice->setIndicators($this->_aIndicators);
+            $oRealPrice->setIndicators($this->_aIndicatorsSettings);
             $this->_aRealPrices[$iDateTime] = $oRealPrice;
         }
+    }
+    
+    public function getQuote(){
+        return $this->_sQuote;
     }
     
     public function getPrices(){
@@ -39,8 +45,8 @@ class realChart {
     }
     
     
-    public function getIndicators(){
-        return $this->_aIndicators;
+    public function getIndicatorsSettings(){
+        return $this->_aIndicatorsSettings;
     }
     
     public function getChartParameters($iPlottableSpaceX){
@@ -73,7 +79,6 @@ class realChart {
     private function _getXIntervalMarks($iPlottableSpaceX) {
         $aDateTimes = array_keys($this->_aRealPrices);
         $iPriceWidth = reset($this->_aRealPrices)->getGraphWidth();
-//        var_dump($this->_aRealPrices);exit;
         $aDays = array();
         foreach($aDateTimes as $iDateTime){
             $sDay = date('Y-m-d',$iDateTime);

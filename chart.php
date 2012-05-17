@@ -15,11 +15,35 @@ $oGraphicalChart = new graphicalChart(500,350);
 
 $iMinutesPerPrice = 30;
 $Zoom = 1;
-$aIndicators = array('ma'   => array(10,20)
-                    ,'bol'  => array('n'=>10,'std_dev'=>2)
-                    ,'rsi'  => array(4)
-                    ,'sto'  => array('n' => 7, 'k' => 3, 'd'=> 5)
-                    ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
+
+//$aIndicators = array('ma'   => array(10,20)
+//                    ,'bol'  => array('n'=>10,'std_dev'=>2)
+//                    ,'rsi'  => array(4)
+//                    ,'sto'  => array('n' => 7, 'k' => 3, 'd'=> 5)
+//                    ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
+
+//http://localhost/mom/chart.php?ma=10,20&bol=10,2&rsi=14&sar=0.02,0.02,0.2
+
+$aIndicators = array();
+if (array_key_exists('ma', $_GET)){
+    $aIndicators['ma']=explode(',',$_GET['ma']);
+}
+if (array_key_exists('bol', $_GET)){
+    $aBollinger = explode(',',$_GET['bol']);
+    $aIndicators['bol']=array('n'=>$aBollinger[0],'std_dev'=>$aBollinger[1]);
+}
+if (array_key_exists('rsi', $_GET)){
+    $aIndicators['rsi']=explode(',',$_GET['rsi']);
+}
+if (array_key_exists('sto', $_GET)){
+    $aStochastic = explode(',',$_GET['sto']);
+    $aIndicators['sto']=array('n'=>$aStochastic[0], 'k'=>$aStochastic[1], 'd'=> $aStochastic[2]);
+}
+if (array_key_exists('sar', $_GET)){
+    $aSAR = explode(',',$_GET['sar']);
+    $aIndicators['sar']=array('af0'=>$aSAR[0],'afX'=>$aSAR[1],'afMax'=>$aSAR[2]);
+}
+
 $oRealChart = new realChart($iMinutesPerPrice, $Zoom, $aIndicators);
 foreach($aDataPrices as $aDataPrice){
     $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']
