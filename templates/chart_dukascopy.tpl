@@ -3,8 +3,8 @@
         height:400px;">
     <div style="border:solid 1px red;
         display:block;
-        width:700px;
-        height:330px;
+        width:900px;
+        height:500px;
         overflow:scroll;
         overflow-y: hidden;
         padding:4px 4px 40px 4px">

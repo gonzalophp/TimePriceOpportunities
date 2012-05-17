@@ -138,19 +138,30 @@ class graphicalChart {
                                                 , $this->_aCharts['prices']['real']['y_marks'][$i]
                                                 , array('r'=>50,'g'=>50,'b'=>50));
                 }
-                
             }
         }
         
         $iPriceWidth = $this->_oRealChart->getPriceWidth();
+        
         $bFirstAbscissa = true;
-        foreach($this->_aCharts['prices']['graph']['x_marks'] as $i){
+        $iPreviousWeek = NULL;
+        foreach($this->_aCharts['prices']['graph']['x_marks'] as $sDate=>$i){
+            $iWeek = date('W',strtotime($sDate));
             if (!$bFirstAbscissa){
+                $aAbscissaColor = ((!is_null($iPreviousWeek)) && ($iWeek != $iPreviousWeek)) ? array('r'=>255, 'g'=>0, 'b'=>0) : array('r'=>180, 'g'=>180, 'b'=>180);
                 $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth))
                                                 , $this->_aCharts['prices']['graph']['corners']['x']
-                                                , ($this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+2));
+                                                , ($this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+2)
+                                                , $aAbscissaColor);
             }
+            
+            $this->_oImageChart->drawLabel(1
+                                        , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth)
+                                        , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']
+                                        , $sDate
+                                        , array('r'=>50,'g'=>50,'b'=>50));
             $bFirstAbscissa=false;
+            $iPreviousWeek = $iWeek;
         }
     }
     

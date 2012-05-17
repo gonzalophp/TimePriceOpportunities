@@ -34,8 +34,8 @@ class imageChart {
         imagestring($this->_rImage, $iFontSize, $x, $y, $sLabel, $this->_getColor($aColor['r'], $aColor['g'], $aColor['b']));
     }
     
-    public function drawAbscissa($iLeft, $y1, $y2){
-        imageline($this->_rImage, $iLeft, $y1, $iLeft, $y2, $this->_getColor(180,180,180));
+    public function drawAbscissa($iLeft, $y1, $y2,$aAbscissaColor){
+        imageline($this->_rImage, $iLeft, $y1, $iLeft, $y2, $this->_getColor($aAbscissaColor['r'],$aAbscissaColor['g'],$aAbscissaColor['b']));
     }
     
     public function drawPoint($x,$y, $aColor) {

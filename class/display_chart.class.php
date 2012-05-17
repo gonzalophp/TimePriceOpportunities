@@ -73,7 +73,7 @@ class display_char {
                                                                         ,$aDataPrice['volume']));
         }
         
-        $oGraphicalChart = new graphicalChart(700,350);
+        $oGraphicalChart = new graphicalChart(900,500);
         $oGraphicalChart->buildGraphicalChart($oRealChart);
         $oGraphicalChart->draw();
         
