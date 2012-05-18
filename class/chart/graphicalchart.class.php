@@ -92,15 +92,15 @@ class graphicalChart {
         
         $iChartDistribution = 10+2*count($aIndicatorsCharts);
         
-        $this->_aCharts['prices']['graph']['corners'] = array('x' => self::GRAPH_MARGIN
-                                                            ,'y' => self::GRAPH_MARGIN
+        $this->_aCharts['prices']['graph']['corners'] = array('x' => self::GRAPH_MARGIN/2
+                                                            ,'y' => (1/2)*self::GRAPH_MARGIN
                                                             ,'w' => $this->_aImageSize['x']-2*self::GRAPH_MARGIN
                                                             ,'h' => (int)(string)(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(10/$iChartDistribution)-5));
         $nChartIndicator = 0;
         foreach(array_keys($this->_aCharts) as $sChart){
             if ($sChart!='prices'){
-                $this->_aCharts[$sChart]['graph']['corners'] = array('x' => self::GRAPH_MARGIN
-                                                                    ,'y' => (int)(string)(self::GRAPH_MARGIN+(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(10/$iChartDistribution))
+                $this->_aCharts[$sChart]['graph']['corners'] = array('x' => self::GRAPH_MARGIN/2
+                                                                    ,'y' => (int)(string)((3/2)*self::GRAPH_MARGIN+(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(10/$iChartDistribution))
                                                                             +($nChartIndicator*(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(2/$iChartDistribution))))
                                                                     ,'w' => $this->_aImageSize['x']-2*self::GRAPH_MARGIN
                                                                     ,'h' => (int)(string)(($this->_aImageSize['y']-(2*self::GRAPH_MARGIN))*(2/$iChartDistribution)-1));
@@ -121,10 +121,6 @@ class graphicalChart {
                                         , $this->_aCharts[$sChart]['graph']['corners']['y']
                                         , $this->_aCharts[$sChart]['graph']['corners']['x']+$this->_aCharts[$sChart]['graph']['corners']['w']
                                         , $this->_aCharts[$sChart]['graph']['corners']['y']+$this->_aCharts[$sChart]['graph']['corners']['h']);
-            $this->_oImageChart->drawLabel(3, $this->_aCharts[$sChart]['graph']['corners']['x']+5
-                                            , $this->_aCharts[$sChart]['graph']['corners']['y']+5
-                                            , $this->_aCharts[$sChart]['caption']
-                                            , array('r'=>0,'g'=>0,'b'=>0));
             foreach($aChartParameters['graph']['y_marks'] as $i=>$iGraphYMark){
                 $this->_oImageChart->drawLine($this->_aCharts[$sChart]['graph']['corners']['x']
                                             , $iGraphYMark
@@ -133,12 +129,16 @@ class graphicalChart {
                                             , array('r' => 180, 'g' => 180, 'b' => 180));
                 if ($sChart == 'prices'){
                     $this->_oImageChart->drawLabel(1
-                                                , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']+2
+                                                , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']+3
                                                 , $iGraphYMark-3
                                                 , $this->_aCharts['prices']['real']['y_marks'][$i]
                                                 , array('r'=>50,'g'=>50,'b'=>50));
                 }
             }
+            $this->_oImageChart->drawLabel(3, $this->_aCharts[$sChart]['graph']['corners']['x']+5
+                                            , $this->_aCharts[$sChart]['graph']['corners']['y']+5
+                                            , $this->_aCharts[$sChart]['caption']
+                                            , array('r'=>0,'g'=>0,'b'=>0));
         }
         
         $iPriceWidth = $this->_oRealChart->getPriceWidth();
@@ -150,16 +150,17 @@ class graphicalChart {
             if (!$bFirstAbscissa){
                 $aAbscissaColor = ((!is_null($iPreviousWeek)) && ($iWeek != $iPreviousWeek)) ? array('r'=>255, 'g'=>0, 'b'=>0) : array('r'=>180, 'g'=>180, 'b'=>180);
                 $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth))
-                                                , $this->_aCharts['prices']['graph']['corners']['x']
+                                                , $this->_aCharts['prices']['graph']['corners']['y']
                                                 , ($this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+2)
                                                 , $aAbscissaColor);
-            }
-            
-            $this->_oImageChart->drawLabel(1
-                                        , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth)
-                                        , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']
+                $this->_oImageChart->drawLabel(1
+                                        , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth)+4
+                                        , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+4
                                         , $sDate
                                         , array('r'=>50,'g'=>50,'b'=>50));
+            }
+            
+            
             $bFirstAbscissa=false;
             $iPreviousWeek = $iWeek;
         }
