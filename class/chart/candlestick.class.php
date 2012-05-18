@@ -19,12 +19,30 @@ class candlestick extends realPrice {
     }
     
     public function drawPrice($oImageChart, $x){
+        
         $oImageChart->drawCandlestick(($x-((int)($this->getGraphWidth()/2)))
                                     , ($x+((int)($this->getGraphWidth()/2)))
                                     , $this->_iGraphMin
                                     , $this->_iGraphMax
                                     , $this->_iGraphOpen
                                     , $this->_iGraphClose);
+        
+        if (!is_null($iTrade = $this->getTrade())){
+            switch($iTrade){
+                case realPrice::TRADE_SELL: 
+                    $aColor = array('r'=>50,'g'=>50,'b'=>200);
+                break;
+                case realPrice::TRADE_CLOSE: 
+                    $aColor = array('r'=>70,'g'=>70,'b'=>70);
+                break;
+                case realPrice::TRADE_BUY: 
+                    $aColor = array('r'=>220,'g'=>210,'b'=>20);
+                break;
+            }
+            $oImageChart->drawBalloon(($x-((int)($this->getGraphWidth()/2)))
+                                      , $this->_iGraphClose
+                                      , $aColor);
+        }
     }
 }
 ?>

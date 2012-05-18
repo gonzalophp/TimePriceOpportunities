@@ -10,6 +10,11 @@ class realPrice {
     private $_aDateTimes;
     private $_iGraphWidth;
     private $_oIndicators;
+    private $_iTrade;
+    
+    const TRADE_SELL=-1;
+    const TRADE_CLOSE=0;
+    const TRADE_BUY=1;
     
     public function realPrice($sDateTime, $nMin, $nMax, $nOpen, $nClose, $iVolume){
         $this->_nMin        = $nMin;
@@ -18,7 +23,17 @@ class realPrice {
         $this->_nClose      = $nClose;
         $this->_iVolume     = $iVolume;
         $this->_aDateTimes  = array(strtotime($sDateTime));
+        $this->_iTrade      = NULL;
     }
+    
+    public function getTrade(){
+        return $this->_iTrade;
+    }
+    
+    public function setTrade($iTrade){
+        $this->_iTrade = $iTrade;
+    }
+    
     
     public function setIndicators($aIndicators){
         $this->_oIndicators = new indicators($aIndicators);

@@ -55,6 +55,10 @@ class imageChart {
         imagerectangle($this->_rImage, $iMinX, $iYOpen, $iMaxX, $iYClose, $this->_getColor(0, 0, 0));
     }
     
+    public function drawBalloon($x,$y, $aColor){
+        imagefilledellipse($this->_rImage, $x, $y, 15, 10, $this->_getColor($aColor['r'], $aColor['g'], $aColor['b']));
+    }
+    
     public function drawImage() {
 //        header("Content-type: image/png");
         imagepng($this->_rImage,'img/chart.png');

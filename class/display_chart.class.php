@@ -12,6 +12,7 @@ require_once('class/data_analysis.class.php');
 
 class display_char {
     private $_aIndicatorsSettings;
+    private $_oGraphicalChart;
     
     public function display_char($aIndicatorsSettings=array()){
         $this->_aIndicatorsSettings = $aIndicatorsSettings;
@@ -41,7 +42,7 @@ class display_char {
         }
     }
     
-    public function run($sQuoteId,$iInterval,$iDays){
+    public function build_chart($sQuoteId,$iInterval,$iDays){
         $oDataInterface = new data_interface();
         $aResultSet = $oDataInterface->getDukascopyTPOData($sQuoteId,$iInterval,$iDays);
         $aDukascopyQuotes = $oDataInterface->get_dukascopy_quotes();
@@ -73,11 +74,15 @@ class display_char {
                                                                         ,$aDataPrice['volume']));
         }
         
-        $oGraphicalChart = new graphicalChart(900,500);
-        $oGraphicalChart->buildGraphicalChart($oRealChart);
-        $oGraphicalChart->draw();
+        $this->_oGraphicalChart = new graphicalChart(900,500);
+        $this->_oGraphicalChart->buildGraphicalChart($oRealChart);
         
-        return $oRealChart;
+        
+        return $oRealChart->getPrices();
+    }
+    
+    public function draw(){
+        $this->_oGraphicalChart->draw();
     }
 }
 
@@ -88,10 +93,13 @@ if (array_key_exists('chart_dukascopy', $_POST)){
                         ,'sto'  => array('n' => 14, 'k' => 3, 'd'=> 5)
                         ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
     $oDisplayChart = new display_char($aIndicators);
-    $oRealChart = $oDisplayChart->run($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
+    $aPrices = $oDisplayChart->build_chart($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
     
-    $oDataAnalysis = new data_analysis($oRealChart);
+    $oDataAnalysis = new data_analysis($aPrices);
     $oDataAnalysis->strategy1();
+    
+    $oDisplayChart->draw();
+    
     $oPage->chart_dukascopy = 2;
 }
 
