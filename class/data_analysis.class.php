@@ -14,7 +14,7 @@ class data_analysis {
         $aBuy = array();
         foreach($this->_aPrices as $oRealPrice){
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
-            if (!is_null($oPreviousPrice)){
+            if (!is_null($aIndicatorsData['BOL']['real']) && !is_null($oPreviousPrice)){
                 if (!$bTrading && ($oRealPrice->getMax()>$aIndicatorsData['BOL']['real']['up'])){
                     if ($oRealPrice->getClose()>$oPreviousPrice->getClose()){
                         $oRealPrice->setTrade(realPrice::TRADE_BUY);
@@ -46,7 +46,9 @@ class data_analysis {
 //            $a = $oRealPrice->getIndicators()->getData();
 //            var_dump($a['MA'][10]['real']);
         }
-        var_dump($aBuy);
+        for($i=0;$i<count($aBuy);$i++){
+            if (($i%2)==1) echo $aBuy[$i].' '.$aBuy[$i-1].' '.$aBuy[$i]-$aBuy[$i-1].'<br/>';
+        }
     }
 }
 ?>
