@@ -39,11 +39,18 @@ class data_postgresql {
                                                                 .' LIMIT $3);';
         
         
-        $a = self::$_oPostgres->query($sQuery, array($sQuote
+        return self::$_oPostgres->query($sQuery, array($sQuote
                                                     ,$iInterval
                                                     ,$iDays));
-//        var_dump($a);exit;
-        return $a;
+    }
+    
+    public function getFirstDateDukascopyData($sQuote, $iInterval){
+        $sQuery = 'select min("RD_datetime")'
+                . ' from "RAW_DUKASCOPY"'
+                . ' where "RD_dukascopy_id"=$1'
+                . ' and "RD_interval"=$2';
+        return self::$_oPostgres->query($sQuery, array($sQuote
+                                                      ,$iInterval));
     }
     
     public function insertDukascopyData($RD_dukascopy_id

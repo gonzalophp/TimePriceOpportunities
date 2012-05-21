@@ -53,12 +53,6 @@ class display_char {
             }
         }
         
-        //$aIndicators = array('ma'   => array(10,20)
-        //                    ,'bol'  => array('n'=>10,'std_dev'=>2)
-        //                    ,'rsi'  => array(4)
-        //                    ,'sto'  => array('n' => 7, 'k' => 3, 'd'=> 5)
-        //                    ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
-
         //http://localhost/mom/chart.php?ma=10,20&bol=10,2&rsi=14&sar=0.02,0.02,0.2
 
         
@@ -96,11 +90,12 @@ if (array_key_exists('chart_dukascopy', $_POST)){
     $aPrices = $oDisplayChart->build_chart($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
     
     $oDataAnalysis = new data_analysis($aPrices);
-    $oDataAnalysis->strategy1();
+    $oDataAnalysis->run('strategy3');
     
     $oDisplayChart->draw();
     
-    $oPage->chart_dukascopy = 2;
+    $oPage->chart_dukascopy = 1;
+    $oPage->analysis_stats = $oDataAnalysis->getStats();
 }
 
 ?>

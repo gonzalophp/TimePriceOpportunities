@@ -6,11 +6,13 @@ class update_dukascopy {
     
     private $_sQuoteId;
     private $_iInterval;
+    private $_sStartDate;
     private $_oCachedFile;
     
-    function update_dukascopy($sQuoteId, $iInterval){
+    function update_dukascopy($sQuoteId, $iInterval, $sStartDate){
         $this->_sQuoteId = $sQuoteId;
         $this->_iInterval = $iInterval;
+        $this->_sStartDate = $sStartDate;
     }
     
     function run(){
@@ -25,7 +27,7 @@ class update_dukascopy {
         $sDateFormat = 'm/d/Y^^^H:i:s';
         
         $oDataInterface = new data_interface();
-        
+
         foreach ($aContentLines as $sContentLine){
             $aContentLine = explode(';', $sContentLine);
             if ((count($aContentLine)==7) && ($oDate = DateTime::createFromFormat($sDateFormat, $aContentLine[0].'^^^'.$aContentLine[1], $oDateTimeZone))){
@@ -40,6 +42,8 @@ class update_dukascopy {
                                                                 , $aContentLine[2]);
             }
         }
+        
+        
     }
     
     private function _getLastDate(){
@@ -61,9 +65,35 @@ class update_dukascopy {
                                 || (((time() - $stat["mtime"])/28800) > 1);
         }
 
+        
+        
+        
+        
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        $bLocalFileOutDated = true;
+        
+        $oDataInterface = new data_interface();
+        $aResultSet = $oDataInterface->getFirstDateDukascopyData($this->_sQuoteId,$this->_iInterval);
+        $this->_sStartDate = date('m.d.Y',strtotime($aResultSet['0']['min']));
+        
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        // HARDCODED
+        
+        
+        
+        
+        
         if ($bLocalFileOutDated){
             $oRemoteFile = new file('http://www.dukascopy.com/freeApplets/exp/exp.php'
-                    .'?fromD='.$this->_getLastDate()        // mm.dd.YYYY - last date
+//                    .'?fromD='.$this->_getLastDate()        // mm.dd.YYYY - last date
+                    .'?fromD='.$this->_sStartDate        // mm.dd.YYYY - last date
                     .'&np=2000'                              //number of points
                     .'&interval='.$this->_iInterval         //time interval
                     .'&DF=m%2Fd%2FY'                        // date format
@@ -79,7 +109,8 @@ class update_dukascopy {
 }
 
 $oUpdateDukascopy = new update_dukascopy($_POST['quote_id']
-                                        ,$_POST['interval']); 
+                                        ,$_POST['interval']
+                                        ,$_POST['datepicker']); 
 $oUpdateDukascopy->run();
 ?>
     

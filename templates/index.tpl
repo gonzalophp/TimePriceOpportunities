@@ -1,9 +1,12 @@
 <html>
     <head>
-<!--        <link rel="stylesheet" type="text/css" href="css/main.css"/>-->
+        <link rel="stylesheet" type="text/css" href="css/main.css"/>
         <link rel="stylesheet" type="text/css" href="css/ui-lightness/jquery-ui-1.8.20.custom.css"/>
         <script src="js/jquery-1.7.2.min.js"></script>
         <script src="js/jquery-ui-1.8.20.custom.min.js"></script>
+        
+        <script language="javascript" type="text/javascript" src="js/niceforms.js"></script>
+        <link rel="stylesheet" type="text/css" media="all" href="css/niceforms-default.css" />
     </head>    
     <body>
         <div class="control">
@@ -22,7 +25,7 @@
             <!--{include file='day_frame_tpo.tpl' display_day_frame_tpo=$oPage->day_frame_tpo}-->
         <!--{/if}-->
         <!--{if isset($oPage->chart_dukascopy)}-->
-            <!--{include file='chart_dukascopy.tpl' display_day_frame_tpo=$oPage->chart_dukascopy}-->
+            <!--{include file='chart_dukascopy.tpl' analysis_stats=$oPage->analysis_stats}-->
         <!--{/if}-->
     </body>
 </html>       

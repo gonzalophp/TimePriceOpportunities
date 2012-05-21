@@ -29,7 +29,7 @@ select {
 }
 
 div {
-    display:table-row;
+    //display:table-row;
 }
 
 div.control div{
@@ -58,3 +58,5 @@ div.price,div.price_value {
 div.price_value {
     background:url("../img/back_orange_value.png") no-repeat;
 }
+
+

@@ -1,6 +1,10 @@
 <script>
+    
 $(function() {
         $( "#datepicker" ).datepicker();
+        $( "#datepicker" ).datepicker( "option", "dateFormat", "mm.dd.yy" );
+        var date = new Date();
+        $( "#datepicker" ).val(("0"+(date.getMonth()+1)).slice(-2)+'.'+("0"+date.getDate()).slice(-2)+'.'+date.getFullYear());
 });
 </script>
 <form method="POST">
@@ -15,7 +19,8 @@ $(function() {
         </select>
         <label  for="interval">Interval (sec)</label>
         <input type="text" name="interval" value="60"/>
-        <input type="text" id="datepicker">
+        <label  for="datepicker">date</label>
+        <p><input type="text" name="datepicker" id="datepicker" /></p>
         <input name="update_dukascopy" type="submit" value="update dukascopy"/>
     </fieldset>
 </form>
