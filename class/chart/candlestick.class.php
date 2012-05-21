@@ -12,10 +12,12 @@ class candlestick extends realPrice {
     }
     
     public function calculateGraphParameters($oGraphicalChart){
-        $this->_iGraphMin = $oGraphicalChart->getGraphicalY('prices',$this->getMin());
-        $this->_iGraphMax = $oGraphicalChart->getGraphicalY('prices',$this->getMax());
-        $this->_iGraphOpen = $oGraphicalChart->getGraphicalY('prices',$this->getOpen());
-        $this->_iGraphClose = $oGraphicalChart->getGraphicalY('prices',$this->getClose());
+        $this->setGraphicalChart($oGraphicalChart);
+        
+        $this->_iGraphMin = $this->getGraphicalChart()->getGraphicalY('prices',$this->getMin());
+        $this->_iGraphMax = $this->getGraphicalChart()->getGraphicalY('prices',$this->getMax());
+        $this->_iGraphOpen = $this->getGraphicalChart()->getGraphicalY('prices',$this->getOpen());
+        $this->_iGraphClose = $this->getGraphicalChart()->getGraphicalY('prices',$this->getClose());
     }
     
     public function drawPrice($oImageChart, $x){
@@ -26,22 +28,25 @@ class candlestick extends realPrice {
                                     , $this->_iGraphMax
                                     , $this->_iGraphOpen
                                     , $this->_iGraphClose);
-        
-        if (!is_null($iTrade = $this->getTrade())){
-            switch($iTrade){
-                case realPrice::TRADE_SELL: 
-                    $aColor = array('r'=>200,'g'=>50,'b'=>50);
-                break;
-                case realPrice::TRADE_CLOSE: 
-                    $aColor = array('r'=>70,'g'=>70,'b'=>70);
-                break;
-                case realPrice::TRADE_BUY: 
-                    $aColor = array('r'=>50,'g'=>210,'b'=>50);
-                break;
+        $aTrades = $this->getTrade();
+        if (!empty($aTrades)){
+            foreach($aTrades as $i=>$aTrade){
+                switch($aTrade['dir']){
+                    case realPrice::TRADE_SELL: 
+                        $aColor = array('r'=>200,'g'=>50,'b'=>50);
+                    break;
+                    case realPrice::TRADE_CLOSE: 
+                        $aColor = array('r'=>70,'g'=>70,'b'=>70);
+                    break;
+                    case realPrice::TRADE_BUY: 
+                        $aColor = array('r'=>50,'g'=>210,'b'=>50);
+                    break;
+                }
+                
+                $oImageChart->drawBalloon((($x-((int)($this->getGraphWidth()/2)))+(4*$i))
+                                        , $this->getGraphicalChart()->getGraphicalY('prices',$aTrade['price'])
+                                        , $aColor);
             }
-            $oImageChart->drawBalloon(($x-((int)($this->getGraphWidth()/2)))
-                                      , $this->_iGraphClose
-                                      , $aColor);
         }
     }
 }
