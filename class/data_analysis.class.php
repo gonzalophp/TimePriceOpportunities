@@ -286,7 +286,10 @@ class data_analysis {
         }
     }
     
-    
+    /**
+     * Open when MA10 and MA20 goes the same direction, and the same direction of the opening price
+     * Close when price touches MA20 again
+     */
     private function _strategy4(){
         $oPreviousRealPrice = NULL;
         $aPreviousPriceIndicatorsData = NULL;
@@ -369,6 +372,105 @@ class data_analysis {
                                     $iTrading = NULL;
                                 }
                             }
+                    }
+                }
+            }
+            
+            $oPreviousRealPrice = $oRealPrice;
+            $aPreviousPriceIndicatorsData = $aIndicatorsData;
+            $iPreviousDay = $iCurrentDay;
+        }
+    }
+    
+    
+    /**
+     *RSI 14
+     * 
+     * AVG
+        Gains 50.16
+        Loss 101.16
+        Failures 0.27
+        Composite Gains 36.39
+        Composite Losses 27.77
+        Ratio Gains/Loss 1.31
+        Losses in a row 1.27
+        Gains in a row 3.36
+     * 
+     * sell  48-60
+     * buy 40-52
+     * AVG
+Gains 45.43
+Loss 102.84
+Failures 0.23
+Composite Gains 34.83
+Composite Losses 24.00
+Ratio Gains/Loss 1.45
+Losses in a row 1.40
+Gains in a row 4.18
+     * 
+     * 
+     * sell     49-60
+     * buy    40-51
+     * AVG
+Gains 44.48
+Loss 106.46
+Failures 0.23
+Composite Gains 34.10
+Composite Losses 24.84
+Ratio Gains/Loss 1.37
+Losses in a row 1.40
+Gains in a row 4.18
+     *  
+     * 
+     * sell   46-60
+     * buy  40-54
+     * AVG
+Gains 48.60
+Loss 91.10
+Failures 0.28
+Composite Gains 34.84
+Composite Losses 25.78
+Ratio Gains/Loss 1.35
+Losses in a row 1.36
+Gains in a row 3.45
+     */
+    private function _strategy5(){
+        $oPreviousRealPrice = NULL;
+        $aPreviousPriceIndicatorsData = NULL;
+        
+        $iPreviousDay = NULL;
+        
+        $nPriceAtStartOfDay = NULL;
+        $nPreviousDayClosePrice = NULL;
+        $iTrading = NULL;
+        
+        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
+            $iCurrentDay=date('d',$iDateTime);
+            $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            
+            if (!is_null($iPreviousDay)){
+                if ($iPreviousDay!=$iCurrentDay){
+                    $nPriceAtStartOfDay = $oRealPrice->getOpen();
+                    $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
+                }
+                
+                if (!is_null($aPreviousPriceIndicatorsData) && !is_null($aPreviousPriceIndicatorsData['RSI']) && !is_null($aPreviousPriceIndicatorsData['RSI'][14]['real'])){
+                    if(is_null($iTrading)){
+                        if ($aIndicatorsData['RSI'][14]['real']>60){
+                            $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_SELL;    
+                        }
+                        elseif ($aIndicatorsData['RSI'][14]['real']<40){
+                            $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_BUY;
+                        }
+                    }
+                    else {
+                        if ((($iTrading == realPrice::TRADE_SELL) && ($aIndicatorsData['RSI'][14]['real']<46))
+                            || (($iTrading == realPrice::TRADE_BUY) && ($aIndicatorsData['RSI'][14]['real']>54))){
+                            $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
+                            $iTrading = NULL;
+                        }
                     }
                 }
             }

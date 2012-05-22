@@ -76,9 +76,9 @@ class update_dukascopy {
         // HARDCODED
         $bLocalFileOutDated = true;
         
-        $oDataInterface = new data_interface();
-        $aResultSet = $oDataInterface->getFirstDateDukascopyData($this->_sQuoteId,$this->_iInterval);
-        $this->_sStartDate = date('m.d.Y',strtotime($aResultSet['0']['min']));
+//        $oDataInterface = new data_interface();
+//        $aResultSet = $oDataInterface->getFirstDateDukascopyData($this->_sQuoteId,$this->_iInterval);
+//        $this->_sStartDate = date('m.d.Y',strtotime($aResultSet['0']['min']));
         var_dump($this->_sStartDate);
         // HARDCODED
         // HARDCODED
