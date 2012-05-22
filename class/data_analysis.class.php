@@ -117,8 +117,8 @@ class data_analysis {
         }
         
         if ($this->_aStats['avg']['failures']>0){
-            $this->_aStats['avg']['comp_gains'] = $this->_aStats['avg']['gains']/(1-$this->_aStats['avg']['failures']);
-            $this->_aStats['avg']['comp_losses'] = $this->_aStats['avg']['loss']/$this->_aStats['avg']['failures'];
+            $this->_aStats['avg']['comp_gains'] = $this->_aStats['avg']['gains']*(1-$this->_aStats['avg']['failures']);
+            $this->_aStats['avg']['comp_losses'] = $this->_aStats['avg']['loss']*$this->_aStats['avg']['failures'];
             
             $this->_aStats['avg']['ratio_gains_losses'] = $this->_aStats['avg']['comp_gains']/$this->_aStats['avg']['comp_losses'];
         }
