@@ -312,12 +312,18 @@ class data_analysis {
                     
                     if(is_null($iTrading)){
                         if (($aIndicatorsData['MA'][20]['real']>$aPreviousPriceIndicatorsData['MA'][20]['real'])
-                        && ($aIndicatorsData['MA'][10]['real']>$aPreviousPriceIndicatorsData['MA'][10]['real'])){
+                        && ($aIndicatorsData['MA'][10]['real']>$aPreviousPriceIndicatorsData['MA'][10]['real'])
+                                && ($nPriceAtStartOfDay>$nPreviousDayClosePrice)
+//                                && ((($nPriceAtStartOfDay-$nPreviousDayClosePrice)/$nPriceAtStartOfDay)< 0.001) 
+                                ){
                             $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
                             $iTrading = realPrice::TRADE_BUY;
                         }    
                         elseif (($aIndicatorsData['MA'][20]['real']<$aPreviousPriceIndicatorsData['MA'][20]['real'])
-                        && ($aIndicatorsData['MA'][10]['real']<$aPreviousPriceIndicatorsData['MA'][10]['real'])){
+                        && ($aIndicatorsData['MA'][10]['real']<$aPreviousPriceIndicatorsData['MA'][10]['real'])
+                                && ($nPriceAtStartOfDay<$nPreviousDayClosePrice)
+//                                && ((($nPreviousDayClosePrice-$nPriceAtStartOfDay)/$nPreviousDayClosePrice)<0.001)
+                                ){
                             $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
                             $iTrading = realPrice::TRADE_SELL;
                         }
