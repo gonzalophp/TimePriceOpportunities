@@ -53,6 +53,12 @@
                 <li><span>Gains </span><!--{$analysis_stats['avg']['gains']|string_format:"%.2f"}--></li>
                 <li><span>Loss </span><!--{$analysis_stats['avg']['loss']|string_format:"%.2f"}--></li>
                 <li><span>Failures </span><!--{$analysis_stats['avg']['failures']|string_format:"%.2f"}--></li>
+                
+                <li><span>Composite Gains </span><!--{$analysis_stats['avg']['comp_gains']|string_format:"%.2f"}--></li>
+                <li><span>Composite Losses </span><!--{$analysis_stats['avg']['comp_losses']|string_format:"%.2f"}--></li>
+                
+                <li><span>Ratio Gains/Loss </span><!--{$analysis_stats['avg']['ratio_gains_losses']|string_format:"%.2f"}--></li>
+                
                 <li><span>Losses in a row </span><!--{$analysis_stats['avg']['losses_in_a_row']|string_format:"%.2f"}--></li>
                 <li><span>Gains in a row </span><!--{$analysis_stats['avg']['gains_in_a_row']|string_format:"%.2f"}--></li>
             </ul>
@@ -61,6 +67,7 @@
     <table>
         <!--{foreach from=$analysis_stats['sequence']['trades'] item=trade}-->
         <tr>
+            <td><!--{$trade['datetime']}--></td>
             <td><!--{if $trade['dir']>0}-->B<!--{else}-->S<!--{/if}--></td>
             <td><!--{$trade['open']}--></td>
             <td><!--{$trade['close']}--></td>

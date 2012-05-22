@@ -81,7 +81,7 @@ class display_char {
 }
 
 if (array_key_exists('chart_dukascopy', $_POST)){
-    $aIndicators = array('ma'   => array(10,20)
+    $aIndicators = array('ma'   => array(10,20,50)
                         ,'bol'  => array('n'=>20,'std_dev'=>2)
                         ,'rsi'  => array(14)
                         ,'sto'  => array('n' => 14, 'k' => 3, 'd'=> 5)
@@ -90,7 +90,7 @@ if (array_key_exists('chart_dukascopy', $_POST)){
     $aPrices = $oDisplayChart->build_chart($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
     
     $oDataAnalysis = new data_analysis($aPrices);
-    $oDataAnalysis->run('strategy3');
+    $oDataAnalysis->run('strategy4');
     
     $oDisplayChart->draw();
     

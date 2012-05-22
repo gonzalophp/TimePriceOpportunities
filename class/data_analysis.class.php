@@ -18,6 +18,8 @@ class data_analysis {
                               ,'avg'        => array( 'gains'            => 0
                                                     ,'loss'             => 0
                                                     ,'failures'         => 0
+                                                    ,'comp_gains'       => 0
+                                                    ,'comp_losses'      => 0
                                                     ,'gains_in_a_row'   => 0
                                                     ,'losses_in_a_row'  => 0));
     }
@@ -51,9 +53,10 @@ class data_analysis {
                         $aCurrentTrade = $aTrade;
                     }
                     elseif ($iTrade===realPrice::TRADE_CLOSE){
-                        $this->_aStats['sequence']['trades'][] = array('dir'  => $aCurrentTrade['dir']
-                                                                    ,'open' => $aCurrentTrade['price']
-                                                                    , 'close'=> $aTrade['price']);
+                        $this->_aStats['sequence']['trades'][] = array('datetime'=> date('Y-m-d',$iDateTime)
+                                                                      ,'dir'    => $aCurrentTrade['dir']
+                                                                      ,'open'   => $aCurrentTrade['price']
+                                                                      ,'close'  => $aTrade['price']);
                         $bTradeWon = (($aCurrentTrade['dir']==realPrice::TRADE_BUY) && ($aTrade['price'] > $aCurrentTrade['price']))
                                     || (($aCurrentTrade['dir']==realPrice::TRADE_SELL) && ($aTrade['price'] < $aCurrentTrade['price']));
                         $this->_aStats['sequence']['letters'] .= $bTradeWon ? 'G' : 'L';
@@ -111,6 +114,13 @@ class data_analysis {
         }
         else {
             $this->_aStats['avg']['failures'] = 0;
+        }
+        
+        if ($this->_aStats['avg']['failures']>0){
+            $this->_aStats['avg']['comp_gains'] = $this->_aStats['avg']['gains']/(1-$this->_aStats['avg']['failures']);
+            $this->_aStats['avg']['comp_losses'] = $this->_aStats['avg']['loss']/$this->_aStats['avg']['failures'];
+            
+            $this->_aStats['avg']['ratio_gains_losses'] = $this->_aStats['avg']['comp_gains']/$this->_aStats['avg']['comp_losses'];
         }
         
         $aDiffLoss = array_diff(explode(' ', str_replace('G',' ',$this->_aStats['sequence']['letters'])), array(''));
@@ -230,7 +240,7 @@ class data_analysis {
     /**
      * Follow parabolic SAR 
      * 
-     * Failures 62%
+     * Failures 59%
      */
     private function _strategy3(){
         $oPreviousRealPrice = NULL;
@@ -273,6 +283,93 @@ class data_analysis {
             }
             $oPreviousRealPrice = $oRealPrice;
             $aPreviousIndicatorsData = $oPreviousRealPrice->getIndicators()->getData();
+        }
+    }
+    
+    
+    private function _strategy4(){
+        $oPreviousRealPrice = NULL;
+        $aPreviousPriceIndicatorsData = NULL;
+        
+        $iPreviousDay = NULL;
+        
+        $nPriceAtStartOfDay = NULL;
+        $nPreviousDayClosePrice = NULL;
+        $iTrading = NULL;
+        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
+            $iCurrentDay=date('d',$iDateTime);
+            $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            
+            if (!is_null($iPreviousDay)){
+                if ($iPreviousDay!=$iCurrentDay){
+                    $nPriceAtStartOfDay = $oRealPrice->getOpen();
+                    $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
+                }
+                if (!is_null($aPreviousPriceIndicatorsData) 
+                        && !is_null($nPriceAtStartOfDay)
+                        && !is_null($aIndicatorsData['MA'][20]['real'])
+                        && !is_null($aPreviousPriceIndicatorsData['MA'][20]['real'])){
+                    
+                    if(is_null($iTrading)){
+                        if (($aIndicatorsData['MA'][20]['real']>$aPreviousPriceIndicatorsData['MA'][20]['real'])
+                        && ($aIndicatorsData['MA'][10]['real']>$aPreviousPriceIndicatorsData['MA'][10]['real'])){
+                            $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_BUY;
+                        }    
+                        elseif (($aIndicatorsData['MA'][20]['real']<$aPreviousPriceIndicatorsData['MA'][20]['real'])
+                        && ($aIndicatorsData['MA'][10]['real']<$aPreviousPriceIndicatorsData['MA'][10]['real'])){
+                            $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_SELL;
+                        }
+                    }
+                    else {
+                            if ($iTrading == realPrice::TRADE_BUY){
+                                if ($oRealPrice->getMin()<$aIndicatorsData['MA'][20]['real']){
+                                    
+                                    if ($iPreviousDay!=$iCurrentDay){
+                                         $oPreviousRealPrice->addTrade(realPrice::TRADE_CLOSE, $oPreviousRealPrice->getClose());
+                                    }
+                                    else {
+                                        if ($oRealPrice->getMax()<$aIndicatorsData['MA'][20]['real']){ 
+                                            $nClosePrice = $oRealPrice->getMax();
+                                        }
+                                        else {
+                                            $nClosePrice = $aIndicatorsData['MA'][20]['real'];
+                                        }
+
+                                        $oRealPrice->addTrade(realPrice::TRADE_CLOSE,$nClosePrice);
+                                    }
+                                    
+                                    $iTrading = NULL;
+                                }
+                            }
+                            else {
+                                if ($oRealPrice->getMax()>$aIndicatorsData['MA'][20]['real']){
+                                    
+                                    if ($iPreviousDay!=$iCurrentDay){
+                                         $oPreviousRealPrice->addTrade(realPrice::TRADE_CLOSE, $oPreviousRealPrice->getClose());
+                                    }
+                                    else {
+                                        if ($oRealPrice->getMin()>$aIndicatorsData['MA'][20]['real']){ 
+                                            $nClosePrice = $oRealPrice->getMin();
+                                        }
+                                        else {
+                                            $nClosePrice = $aIndicatorsData['MA'][20]['real'];
+                                        }
+
+                                        $oRealPrice->addTrade(realPrice::TRADE_CLOSE,$nClosePrice);
+                                    }
+                                    
+                                    $iTrading = NULL;
+                                }
+                            }
+                    }
+                }
+            }
+            
+            $oPreviousRealPrice = $oRealPrice;
+            $aPreviousPriceIndicatorsData = $aIndicatorsData;
+            $iPreviousDay = $iCurrentDay;
         }
     }
 }
