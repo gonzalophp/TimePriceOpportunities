@@ -433,6 +433,9 @@ Composite Losses 25.78
 Ratio Gains/Loss 1.35
 Losses in a row 1.36
 Gains in a row 3.45
+     * 
+     * 
+     * Opening price improves 15% gains
      */
     private function _strategy5(){
         $oPreviousRealPrice = NULL;
@@ -456,11 +459,11 @@ Gains in a row 3.45
                 
                 if (!is_null($aPreviousPriceIndicatorsData) && !is_null($aPreviousPriceIndicatorsData['RSI']) && !is_null($aPreviousPriceIndicatorsData['RSI'][14]['real'])){
                     if(is_null($iTrading)){
-                        if ($aIndicatorsData['RSI'][14]['real']>60){
+                        if (($aIndicatorsData['RSI'][14]['real']>60) && ($nPriceAtStartOfDay<$nPreviousDayClosePrice)){
                             $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
                             $iTrading = realPrice::TRADE_SELL;    
                         }
-                        elseif ($aIndicatorsData['RSI'][14]['real']<40){
+                        elseif (($aIndicatorsData['RSI'][14]['real']<40) && ($nPriceAtStartOfDay>$nPreviousDayClosePrice)){
                             $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
                             $iTrading = realPrice::TRADE_BUY;
                         }
@@ -468,6 +471,64 @@ Gains in a row 3.45
                     else {
                         if ((($iTrading == realPrice::TRADE_SELL) && ($aIndicatorsData['RSI'][14]['real']<46))
                             || (($iTrading == realPrice::TRADE_BUY) && ($aIndicatorsData['RSI'][14]['real']>54))){
+                            $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
+                            $iTrading = NULL;
+                        }
+                    }
+                }
+            }
+            
+            $oPreviousRealPrice = $oRealPrice;
+            $aPreviousPriceIndicatorsData = $aIndicatorsData;
+            $iPreviousDay = $iCurrentDay;
+        }
+    }
+    
+    
+    private function _strategy6(){
+        $oPreviousRealPrice = NULL;
+        $aPreviousPriceIndicatorsData = NULL;
+        
+        $iPreviousDay = NULL;
+        
+        $nPriceAtStartOfDay = NULL;
+        $nPreviousDayClosePrice = NULL;
+        $iTrading = NULL;
+        
+        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
+            $iCurrentDay=date('d',$iDateTime);
+            $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            
+            if (!is_null($iPreviousDay)){
+                if ($iPreviousDay!=$iCurrentDay){
+                    $nPriceAtStartOfDay = $oRealPrice->getOpen();
+                    $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
+                }
+                
+                if (!is_null($aPreviousPriceIndicatorsData) && !is_null($aPreviousPriceIndicatorsData['STO'])){
+                    if(is_null($iTrading)){
+                        if (($aIndicatorsData['STO']['real']['d']>$aPreviousPriceIndicatorsData['STO']['real']['d'])
+                                && ($aIndicatorsData['STO']['real']['d']<25)
+                                && ($nPriceAtStartOfDay<$nPreviousDayClosePrice)
+                                ){
+                            $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_BUY;
+                            
+                        }
+                        elseif (($aIndicatorsData['STO']['real']['d']<$aPreviousPriceIndicatorsData['STO']['real']['d'])
+                                && ($aIndicatorsData['STO']['real']['d']>75)
+                                && ($nPriceAtStartOfDay>$nPreviousDayClosePrice)
+                                ){
+                            $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                            $iTrading = realPrice::TRADE_SELL;    
+                        }
+                    }
+                    else {
+                        if ((($iTrading == realPrice::TRADE_SELL) && ($aIndicatorsData['STO']['real']['d']<40))
+//                                || (($iTrading == realPrice::TRADE_SELL) && ($oRealPrice->getMax()>$oPreviousRealPrice->getMax()))
+                            || (($iTrading == realPrice::TRADE_BUY) && ($aIndicatorsData['STO']['real']['d']>60))
+//                                || (($iTrading == realPrice::TRADE_BUY) && ($oRealPrice->getMin()<$oPreviousRealPrice->getMin()))
+                                ){
                             $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
                             $iTrading = NULL;
                         }
