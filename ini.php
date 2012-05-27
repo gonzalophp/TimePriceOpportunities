@@ -1,4 +1,6 @@
 <?php
+ini_set("error_log", "log/php-error.log");
+
 date_default_timezone_set('Europe/London');
 
 require_once('smarty/Smarty-3.1.8/libs/Smarty.class.php');

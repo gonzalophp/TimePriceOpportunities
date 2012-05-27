@@ -44,7 +44,8 @@ class display_char {
     
     public function build_chart($sQuoteId,$iInterval,$iDays){
         $oDataInterface = new data_interface();
-        $aResultSet = $oDataInterface->getDukascopyTPOData($sQuoteId,$iInterval,$iDays);
+        
+        $aResultSet = $oDataInterface->getDukascopyTPOData($sQuoteId,(($iInterval=='1W' || $iInterval=='1D') ? '1D':60),$iDays);
         $aDukascopyQuotes = $oDataInterface->get_dukascopy_quotes();
         
         foreach($aDukascopyQuotes as $aQuote){
@@ -56,9 +57,8 @@ class display_char {
         //http://localhost/mom/chart.php?ma=10,20&bol=10,2&rsi=14&sar=0.02,0.02,0.2
 
         
-        $iMinutesPerPrice = 30;
         $Zoom = 1;
-        $oRealChart = new realChart($sQuote, $iMinutesPerPrice, $Zoom, $this->_aIndicatorsSettings);
+        $oRealChart = new realChart($sQuote, $iInterval, $Zoom, $this->_aIndicatorsSettings);
         foreach($aResultSet as $aDataPrice){
             $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']
                                                                         ,$aDataPrice['min']
@@ -90,7 +90,7 @@ if (array_key_exists('chart_dukascopy', $_POST)){
     $aPrices = $oDisplayChart->build_chart($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
     
     $oDataAnalysis = new data_analysis($aPrices);
-    $oDataAnalysis->run('strategy6');
+    $oDataAnalysis->run('strategy7');
     
     $oDisplayChart->draw();
     

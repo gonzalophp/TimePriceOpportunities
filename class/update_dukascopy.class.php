@@ -16,8 +16,44 @@ class update_dukascopy {
     }
     
     function run(){
+//        $this->update_from_yahoo();
+//        exit;
         $this->_checkCachedData();
         $this->_updateData();
+    }
+    
+    public function update_from_yahoo(){
+        $dukascopyFolder = dirname($_SERVER['DOCUMENT_ROOT'].$_SERVER['PHP_SELF']).'/dukascopy';
+        $oLocalFile = new file($dukascopyFolder.'/1980-2012.csv');
+        $aContentLines = $oLocalFile->getLines();
+        $i=0;
+        $oDataInterface = new data_interface();
+//        $oDateTimeZone = new DateTimeZone('Europe/London');
+        $oDateTimeZone = new DateTimeZone('BST');
+        foreach($aContentLines as $sLine){
+            
+            $aLine=explode(',',$sLine);
+            $iDate = strtotime($aLine[0]);
+            $sDate=date('Y-m-d',$iDate).' 00:00:00';
+//            var_dump($iDate,$this->_sQuoteId, $sDate,$aLine);
+            if ($iDate){
+                $oDate = DateTime::createFromFormat('Y-m-d H:i:s', $sDate, $oDateTimeZone);
+            $aResultSet = $oDataInterface->insertDukascopyData($this->_sQuoteId
+                                                                , '1D'
+                                                                , $oDate->format('Y-m-d H:i:s')
+                                                                , $aLine[3]
+                                                                , $aLine[2]
+                                                                , $aLine[1]
+                                                                , $aLine[4]
+                                                                , 0);
+//              0           1          2            3         4        5         6
+//            DATE;        TIME;      VOLUME;     OPEN;    CLOSE;     MIN;      MAX                                                    
+//            11/26/1990;  00:00:01;  0;          1466.3;  1443.2;  1443.2;   1466.3
+            }
+            
+//            if ($i++ > 2) exit;
+        }
+//        var_dump($aContentLines);
     }
     
     private function _updateData(){

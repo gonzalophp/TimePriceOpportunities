@@ -23,7 +23,7 @@ class realPrice {
         $this->_nOpen       = $nOpen;
         $this->_nClose      = $nClose;
         $this->_iVolume     = $iVolume;
-        $this->_aDateTimes  = array(strtotime($sDateTime));
+        $this->_aDateTimes  = array($sDateTime);
         $this->_aTrade      = array();
     }
     

@@ -18,7 +18,11 @@ $(function() {
             <!--{/foreach}-->
         </select>
         <label  for="interval">Interval (sec)</label>
-        <input type="text" name="interval" value="60"/>
+        <select id="interval_select" name="interval">
+                <option value="60">1 min</option>
+                <option value="600">10 min</option>
+                <option value="1D">1 day</option>
+        </select>
         <label  for="datepicker">date</label>
         <p><input type="text" name="datepicker" id="datepicker" /></p>
         <input name="update_dukascopy" type="submit" value="update dukascopy"/>

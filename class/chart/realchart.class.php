@@ -6,30 +6,82 @@ class realChart {
     
     private $_aRealPrices;
     private $_iZoom;
-    private $_iMinutesPerPrice;
+    private $_sGraphTimeInterval;
     private $_aIndicatorsSettings;
     private $_sQuote;
 
-    public function realChart($sQuote,$iMinutesPerPrice, $iZoom=1, $aIndicators=array()){
-        $this->_sQuote            = $sQuote;
+    public function realChart($sQuote,$sGraphTimeInterval, $iZoom=1, $aIndicators=array()){
+        $this->_sQuote              = $sQuote;
         $this->_aRealPrices         = array();
         $this->_iZoom               = $iZoom;
-        $this->_iMinutesPerPrice    = $iMinutesPerPrice;
+        $this->_sGraphTimeInterval   = $sGraphTimeInterval;
         $this->_aIndicatorsSettings = $aIndicators;
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
-        $iDateTime = strtotime($sDateTime);
-        $iDateTime -= ($iDateTime % ($this->_iMinutesPerPrice*60));
         
-        if (array_key_exists($iDateTime, $this->_aRealPrices)){
-            $this->_aRealPrices[$iDateTime]->addPrice($oRealPrice);
+        $sDay = substr($sDateTime,0,10);
+        $iDay = strtotime($sDay);
+        $sFinalDate = date('Y m W d',$iDay);
+        if (($this->_sGraphTimeInterval=='1D') || ($this->_sGraphTimeInterval=='1W')){
+            $sFinalTime='00:00';
+        }
+        else {
+            $sHour = substr($sDateTime,11,5);
+
+            switch($this->_sGraphTimeInterval) {
+                case '5': $aPossibleTimes = array(':00',':05',':10',':15',':20',':25',':30',':35',':40',':45',':50',':55');
+                    break;
+                case '10': $aPossibleTimes = array(':00',':10',':20',':30',':40',':50');
+                    break;
+                case '15': $aPossibleTimes = array(':00',':15',':30',':45');
+                    break;
+                case '30': $aPossibleTimes = array(':00',':30');
+                    break;
+                case '60': $aPossibleTimes = array(':00');
+                    break;
+                case '120': $aPossibleTimes = array('00:00','02:00','04:00','06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00','22:00');
+                    break;
+                case '240': $aPossibleTimes = array('00:00','04:00','08:00','12:00','16:00','20:00');
+                    break;
+            }
+        
+            $aInputTime = explode(':',$sHour);
+            rsort($aPossibleTimes);
+            if ($this->_sGraphTimeInterval<=60){
+                foreach($aPossibleTimes as $sPossibleTime){
+                    $aPossibleTime = explode(':',$sPossibleTime);
+                    if ($aInputTime[1] >= $aPossibleTime[1]){
+                        $sFinalTime = $aInputTime[0].':'.$aPossibleTime[1];
+                        break;
+                    }
+                }
+            }
+            else {
+                foreach($aPossibleTimes as $sPossibleTime){
+                    $aPossibleTime = explode(':',$sPossibleTime);
+                    if ($aInputTime[0] >= $aPossibleTime[0]){
+                        $sFinalTime = $aPossibleTime[0].':00';
+                        break;
+                    }
+                }
+            }
+        }
+        
+        $sPriceIndex = "$sFinalDate $sFinalTime";
+
+        if (array_key_exists($sPriceIndex, $this->_aRealPrices)){
+            $this->_aRealPrices[$sPriceIndex]->addPrice($oRealPrice);
         }
         else {
             $oRealPrice->setZoom($this->_iZoom);
             $oRealPrice->setIndicators($this->_aIndicatorsSettings);
-            $this->_aRealPrices[$iDateTime] = $oRealPrice;
+            $this->_aRealPrices[$sPriceIndex] = $oRealPrice;
         }
+    }
+    
+    public function getGraphTimeInterval(){
+        return $this->_sGraphTimeInterval;
     }
     
     public function getQuote(){
@@ -76,56 +128,76 @@ class realChart {
         }
     }
     
-    private function _getXIntervalMarks($iPlottableSpaceX) {
-        $aDateTimes = array_keys($this->_aRealPrices);
-        $iPriceWidth = reset($this->_aRealPrices)->getGraphWidth();
-        $aDays = array();
-        foreach($aDateTimes as $iDateTime){
-            $sDay = date('Y-m-d',$iDateTime);
-            if (!array_key_exists($sDay, $aDays)){
-                $aDays[$sDay] = array($iDateTime);
+    private function _getPreviousTime($sHour){
+        $aHour = explode(':',$sHour);
+        
+        if ($this->_sGraphTimeInterval>=60){
+            $iMinusHours = $this->_sGraphTimeInterval/60;
+            if ($aHour[0]>$iMinusHours){
+                $sFinalHour=($aHour[0]-$iMinusHours);
+                $sFinalMinutes = (int)$aHour[1];
             }
             else {
-                $aDays[$sDay][] = $iDateTime;
+                echo "time error:";exit;
+            }
+        }
+        else {
+            if ($this->_sGraphTimeInterval>$aHour[1]){
+                $sFinalHour = ($aHour[0]-1);
+                $sFinalMinutes = (60-$this->_sGraphTimeInterval);
+            }
+            else {
+                $sFinalHour = (int)$aHour[0];
+                $sFinalMinutes = ($aHour[1]-$this->_sGraphTimeInterval);
             }
         }
         
-        $iSecondsPerPrice = $this->_iMinutesPerPrice*60;
+        if ($sFinalHour<10) $sFinalHour='0'.$sFinalHour;
+        if ($sFinalMinutes<10) $sFinalMinutes='0'.$sFinalMinutes;
+
+        $sFinalTime =$sFinalHour.':'.$sFinalMinutes;
         
-        $aPriceTimes = array();
-        foreach($aDays as $sDay=>$aTimes){
-            $aPriceTimes[$sDay]=array();
-            
-            $iMaxTime = max($aTimes) - (max($aTimes) % $iSecondsPerPrice);
-            $iMinTime = min($aTimes) - (min($aTimes) % $iSecondsPerPrice);
-            
-            for ($i=$iMaxTime;$i>=$iMinTime; $i-=$iSecondsPerPrice){
-                $aPriceTimes[$sDay][]=$i;
-            }
-        }
-        
-        $sMinTime = '24:00';
-        $sMaxTime = '00:00';
-        foreach($aPriceTimes as $sDay => $aTimes){
-            foreach($aTimes as $iTime){
-                $sMinTime = min($sMinTime, date ('H:i', $iTime));
-                $sMaxTime = max($sMaxTime, date ('H:i', $iTime));
-            }
-        }
-        
+        return $sFinalTime;
+    }
+    
+    private function _getXIntervalMarks($iPlottableSpaceX) {
+        echo "MinutesPerPrice: $this->_sGraphTimeInterval \n";
+        $aDateTimes = array_keys($this->_aRealPrices);
+        $iPriceWidth = reset($this->_aRealPrices)->getGraphWidth();
         $iAvailableGraphPoints = ((int)(string)($iPlottableSpaceX/$iPriceWidth));
-        krsort($aPriceTimes);
+        rsort($aDateTimes);
+        //YYYY MM WW DD HH:MM
+        //2012 05 20 17 07:30
         $aXIntervalMarks = array();
-        foreach($aPriceTimes as $sDay => $aTimes){
-            $aXIntervalMarks[$sDay] = array();
-            $iLastDayPriceTime = strtotime($sDay.' '.$sMaxTime);
-            $iFirstDayPriceTime = strtotime($sDay.' '.$sMinTime);
-            for($i=$iLastDayPriceTime;(($iAvailableGraphPoints>0) && ($i>=$iFirstDayPriceTime));$i-=$iSecondsPerPrice){
-                $aXIntervalMarks[$sDay][] = $i;
-                $iAvailableGraphPoints--;
+        if (($this->_sGraphTimeInterval=='1D') || ($this->_sGraphTimeInterval=='1W')){
+            foreach($aDateTimes as $sDateTime){
+                $aXIntervalMarks[]=$sDateTime;
             }
-            if ($iAvailableGraphPoints==0) break;
         }
+        else {
+            $sMinTime = '23:59';
+            $sMaxTime = '00:00';
+            foreach($aDateTimes as $sDateTime){
+                $sHour = substr($sDateTime, 14,5);
+                $sMinTime = min($sMinTime, $sHour);
+                $sMaxTime = max($sMaxTime, $sHour);
+            }
+            
+            $sProcessedDay = NULL;
+            foreach($aDateTimes as $sDateTime){
+                $sDay = substr($sDateTime,0,13);
+                if (is_null($sProcessedDay) || ($sDay!=$sProcessedDay)){
+                    for($sHour=$sMaxTime;$sHour>=$sMinTime;$sHour=$this->_getPreviousTime($sHour)){
+                        $aXIntervalMarks[]=substr($sDateTime,0,14).$sHour;
+                        $iAvailableGraphPoints--;
+                        if ($iAvailableGraphPoints==0) break;
+                    }
+                }
+                if ($iAvailableGraphPoints==0) break;
+                $sProcessedDay = $sDay;
+            }
+        }
+        
         return $aXIntervalMarks;
     }
     
@@ -184,36 +256,34 @@ class realChart {
     }
     
     private function _getPriceExtremes($aXIntervalMarks){
-        $bFirstX=false;
-        $bFirstY=false;
-        foreach($aXIntervalMarks as $sDay=>$aTimes){
-            foreach($aTimes as $iDateTime){
-                if (array_key_exists($iDateTime, $this->_aRealPrices)){
-                    if ($bFirstY){
-                        $nMinY = min($nMinY,$this->_aRealPrices[$iDateTime]->getMin());
-                        $nMaxY = max($nMaxY,$this->_aRealPrices[$iDateTime]->getMax());
-                    }
-                    else {
-                        $nMinY = $this->_aRealPrices[$iDateTime]->getMin();
-                        $nMaxY = $this->_aRealPrices[$iDateTime]->getMax();
-                        $bFirstY=true;
-                    }
-                }
-                if ($bFirstX){
-                    $nMinX = min($nMinX,$iDateTime);
-                    $nMaxX = max($nMaxX,$iDateTime);
+        $bFirstX=true;
+        $bFirstY=true;
+        
+        foreach($aXIntervalMarks as $sDateTime){
+            if (array_key_exists($sDateTime, $this->_aRealPrices)){
+                if ($bFirstY){
+                    $nMinY = $this->_aRealPrices[$sDateTime]->getMin();
+                    $nMaxY = $this->_aRealPrices[$sDateTime]->getMax();
+                    $bFirstY=false;
                 }
                 else {
-                    $nMinX = $iDateTime;
-                    $nMaxX = $iDateTime;
-                    $bFirstX=true;
+                    $nMinY = min($nMinY,$this->_aRealPrices[$sDateTime]->getMin());
+                    $nMaxY = max($nMaxY,$this->_aRealPrices[$sDateTime]->getMax());
                 }
-                
+            }
+            if ($bFirstX){
+                $sMinX = $sDateTime;
+                $sMaxX = $sDateTime;
+                $bFirstX=false;
+            }
+            else {
+                $sMinX = min($sMinX,$sDateTime);
+                $sMaxX = max($sMaxX,$sDateTime);
             }
         }
         
-        return array( 'minX'    => $nMinX
-                    , 'maxX'    => $nMaxX
+        return array( 'minX'    => $sMinX
+                    , 'maxX'    => $sMaxX
                     , 'minY'    => $nMinY
                     , 'maxY'    => $nMaxY);
     }

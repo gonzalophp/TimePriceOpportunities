@@ -14,7 +14,15 @@
             <!--{/foreach}-->
         </select>
         <label  for="interval">Interval</label>
-        <input type="text" name="interval" value="60"/>
+        <select id="interval_select" name="interval">
+                <option value="5">5 min</option>
+                <option value="10">10 min</option>
+                <option value="15">15 min</option>
+                <option value="30">30 min</option>
+                <option value="60">60 min</option>
+                <option value="1D">1 day</option>
+                <option value="1W">1 week</option>
+        </select>
         <label  for="days">Days</label>
         <input type="text" name="days" value="5"/>
         <label  for="days">Price Interval</label>

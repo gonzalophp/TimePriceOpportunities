@@ -72,19 +72,9 @@ class graphicalChart {
     
     private function _buildGraphicalChartParameters(){
         // Prices
-        $i=0;
-        foreach($this->_aCharts['prices']['real']['timeframe'] as $sDay=>$aTimes){
-            foreach($aTimes as $iDateTime){
-                $this->_aCharts['prices']['graph']['prices'][++$i] = (array_key_exists($iDateTime, $this->_aCharts['prices']['real']['prices'])) ? $this->_aCharts['prices']['real']['prices'][$iDateTime]:NULL;
-            }
-        }
         
-        // X Marks
-        $i=0;
-        $this->_aCharts['prices']['graph']['x_marks'] = array();
-        foreach($this->_aCharts['prices']['real']['timeframe'] as $sDay=>$aTimes){
-            $this->_aCharts['prices']['graph']['x_marks'][$sDay] = $i;
-            $i += count($aTimes);
+        foreach($this->_aCharts['prices']['real']['timeframe'] as $sDateTime){
+                $this->_aCharts['prices']['graph']['prices'][$sDateTime] = (array_key_exists($sDateTime, $this->_aCharts['prices']['real']['prices'])) ? $this->_aCharts['prices']['real']['prices'][$sDateTime]:NULL;
         }
         
         // Indicators
@@ -143,26 +133,40 @@ class graphicalChart {
         
         $iPriceWidth = $this->_oRealChart->getPriceWidth();
         
-        $bFirstAbscissa = true;
-        $iPreviousWeek = NULL;
-        foreach($this->_aCharts['prices']['graph']['x_marks'] as $sDate=>$i){
-            $iWeek = date('W',strtotime($sDate));
-            if (!$bFirstAbscissa){
-                $aAbscissaColor = ((!is_null($iPreviousWeek)) && ($iWeek != $iPreviousWeek)) ? array('r'=>255, 'g'=>0, 'b'=>0) : array('r'=>180, 'g'=>180, 'b'=>180);
-                $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth))
+        $sGraphTimeInterval = $this->_oRealChart->getGraphTimeInterval();
+        if ($sGraphTimeInterval=='1D' || $sGraphTimeInterval=='1W'){
+            $aDateDivision1 = array(5,2); // months
+            $aDateDivision2 = array(0,4); // years
+        }
+        else {
+            $aDateDivision1 = array(11,2); // days
+            $aDateDivision2 = array(8,2); // weeks
+        }
+        
+        $sPreviousDiv1 = NULL;
+        $sPreviousDiv2 = NULL;
+        $iPreviousMark = 0;
+        $iMark=0;
+        foreach(array_keys($this->_aCharts['prices']['graph']['prices']) as $sDateTime){
+            $sCurrentDiv1 = substr($sDateTime, $aDateDivision1[0], $aDateDivision1[1]);
+            $sCurrentDiv2 = substr($sDateTime, $aDateDivision2[0], $aDateDivision2[1]);
+            
+            if (!is_null($sPreviousDiv1) && ($sCurrentDiv1!=$sPreviousDiv1)){
+                $aAbscissaColor = ($sCurrentDiv2 != $sPreviousDiv2) ? array('r'=>255, 'g'=>0, 'b'=>0) : array('r'=>180, 'g'=>180, 'b'=>180);
+                $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMark*$iPriceWidth))
                                                 , $this->_aCharts['prices']['graph']['corners']['y']
                                                 , ($this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+2)
                                                 , $aAbscissaColor);
                 $this->_oImageChart->drawLabel(1
-                                        , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($i*$iPriceWidth)+4
-                                        , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+4
-                                        , $sDate
-                                        , array('r'=>50,'g'=>50,'b'=>50));
+                                            , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMark*$iPriceWidth)+((($iMark-$iPreviousMark)/2)*$iPriceWidth)
+                                            , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+4
+                                            , $sPreviousDiv1
+                                            , array('r'=>50,'g'=>50,'b'=>50));
+                $iPreviousMark = $iMark;
             }
-            
-            
-            $bFirstAbscissa=false;
-            $iPreviousWeek = $iWeek;
+            $iMark++;
+            $sPreviousDiv1 = $sCurrentDiv1;
+            $sPreviousDiv2 = $sCurrentDiv2;
         }
     }
     
@@ -177,14 +181,16 @@ class graphicalChart {
         
         $iPriceWidth = $this->_oRealChart->getPriceWidth();
         $iRightExtreme = $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w'];
-        foreach($this->_aCharts['prices']['graph']['prices'] as $i=>$oRealPrice){
+        
+        $i=0;
+        foreach($this->_aCharts['prices']['graph']['prices'] as $sDateTime=>$oRealPrice){
+            $i++;
             if (!is_null($oRealPrice)){
                 $x = (int)(string)($iRightExtreme-($i*$iPriceWidth));
                 $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
             }
         }
-//        exit;
     }
 }
 ?>

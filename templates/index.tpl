@@ -23,6 +23,7 @@
         </div>
         <!--{if isset($oPage->day_frame_tpo)}-->
             <!--{include file='day_frame_tpo.tpl' display_day_frame_tpo=$oPage->day_frame_tpo}-->
+            </div>
         <!--{/if}-->
         <!--{if isset($oPage->chart_dukascopy)}-->
             <!--{include file='chart_dukascopy.tpl' analysis_stats=$oPage->analysis_stats}-->

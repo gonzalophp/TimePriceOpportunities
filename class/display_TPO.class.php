@@ -44,12 +44,9 @@ class display_TPO {
             break;
         }
 
-        $sDateFormat = 'Y-m-d H:i:se';
         if (!empty($aResultSet)){
             foreach($aResultSet as $aResultSetLine){
-                $oDate = DateTime::createFromFormat($sDateFormat, $aResultSetLine['datetime']);
-
-                $sDayKey = $oDate->format('Ymd');
+                $sDayKey = substr($aResultSetLine['datetime'],0,10);
 
                 if (!array_key_exists($sDayKey, $aDays['time_frame_data'])) {
                     $aDays['time_frame_data'][$sDayKey] = array('TPO'           => array()
@@ -58,8 +55,9 @@ class display_TPO {
                                                             , 'total_volume'    => 0);
                 }
 
-                $nHalf = ($oDate->format('i') < 30) ? 0:1;
-                $sTPOKey = $oDate->format('H').$nHalf;
+                
+                $nHalf = (substr($aResultSetLine['datetime'],14,2) < 30) ? 0:1;
+                $sTPOKey = substr($aResultSetLine['datetime'],11,2).$nHalf;
 
                 $nMin = intval($aResultSetLine['min']/$aDays['price_interval']);
                 $nMax = intval($aResultSetLine['max']/$aDays['price_interval']);

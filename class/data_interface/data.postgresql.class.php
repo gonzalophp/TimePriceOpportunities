@@ -11,6 +11,10 @@ class data_postgresql {
         }
     }
     
+    public function getLastError($field=PGSQL_DIAG_SQLSTATE){
+        return self::$_oPostgres->getLastError($field);
+    }
+    
     public function get_dukascopy_quotes(){
         $sQuery = 'SELECT "DQI_dukascopy_id"'
                         .' ,"DQI_quote_id"'
@@ -22,7 +26,7 @@ class data_postgresql {
     public function getDukascopyTPOData($sQuote, $iInterval,$iDays){
         $sQuery = 'SELECT "RD_dukascopy_id" as quote_id'
                         .' ,"RD_interval"   as interval'
-                        .' ,"RD_datetime"   as datetime'
+                        .' ,to_char("RD_datetime",\'YYYY-MM-DD HH24:MI:\')||\'00\'   as datetime'
                         .' ,"RD_min"        as min'
                         .' ,"RD_max"        as max'
                         .' ,"RD_open"       as open'
