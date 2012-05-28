@@ -303,8 +303,8 @@ class data_analysis {
         $nPriceAtStartOfDay = NULL;
         $nPreviousDayClosePrice = NULL;
         $iTrading = NULL;
-        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
-            $iCurrentDay=date('d',$iDateTime);
+        foreach($this->_aPrices as $sDateTime=>$oRealPrice){
+            $iCurrentDay=substr($sDateTime,11,2);
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
             
             if (!is_null($iPreviousDay)){
@@ -451,8 +451,8 @@ Gains in a row 3.45
         $nPreviousDayClosePrice = NULL;
         $iTrading = NULL;
         
-        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
-            $iCurrentDay=date('d',$iDateTime);
+        foreach($this->_aPrices as $sDateTime=>$oRealPrice){
+            $iCurrentDay=substr($sDateTime,11,2);
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
             
             if (!is_null($iPreviousDay)){
@@ -509,8 +509,8 @@ Gains in a row 2.67
         $nPreviousDayClosePrice = NULL;
         $iTrading = NULL;
         
-        foreach($this->_aPrices as $iDateTime=>$oRealPrice){
-            $iCurrentDay=date('d',$iDateTime);
+        foreach($this->_aPrices as $sDateTime=>$oRealPrice){
+            $iCurrentDay=substr($sDateTime,11,2);
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
             
             if (!is_null($iPreviousDay)){

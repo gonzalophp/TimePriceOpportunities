@@ -2,7 +2,7 @@
 require_once('class/chart/realprice.class.php');
 
 class realChart {
-    const VERTICAL_MARGIN = 5; // In % on both, top and bottom
+    const VERTICAL_MARGIN = 2; // In % on both, top and bottom
     
     private $_aRealPrices;
     private $_iZoom;
@@ -172,6 +172,8 @@ class realChart {
         if (($this->_sGraphTimeInterval=='1D') || ($this->_sGraphTimeInterval=='1W')){
             foreach($aDateTimes as $sDateTime){
                 $aXIntervalMarks[]=$sDateTime;
+                $iAvailableGraphPoints--;
+                if ($iAvailableGraphPoints==0) break;
             }
         }
         else {
@@ -269,6 +271,12 @@ class realChart {
                 else {
                     $nMinY = min($nMinY,$this->_aRealPrices[$sDateTime]->getMin());
                     $nMaxY = max($nMaxY,$this->_aRealPrices[$sDateTime]->getMax());
+                }
+                
+                $aIndicatorsData = $this->_aRealPrices[$sDateTime]->getIndicators()->getData();
+                if (array_key_exists('BOL',$aIndicatorsData) && !is_null($aIndicatorsData['BOL'])){
+                    $nMinY = min($nMinY,$aIndicatorsData['BOL']['real']['down']);
+                    $nMaxY = max($nMaxY,$aIndicatorsData['BOL']['real']['up']);
                 }
             }
             if ($bFirstX){
