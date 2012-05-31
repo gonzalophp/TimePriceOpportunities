@@ -135,12 +135,12 @@ class graphicalChart {
         
         $sGraphTimeInterval = $this->_oRealChart->getGraphTimeInterval();
         if ($sGraphTimeInterval=='1D' || $sGraphTimeInterval=='1W'){
-            $aDateDivision1 = array(5,2); // months
-            $aDateDivision2 = array(0,4); // years
+            $sDateDivision1 = 'm'; // months
+            $sDateDivision2 = 'Y'; // years
         }
         else {
-            $aDateDivision1 = array(11,2); // days
-            $aDateDivision2 = array(8,2); // weeks
+            $sDateDivision1 = 'd'; // days
+            $sDateDivision2 = 'W'; // weeks
         }
         
         $sPreviousDiv1 = NULL;
@@ -148,17 +148,26 @@ class graphicalChart {
         $iPreviousMark = 0;
         $iMark=0;
         foreach(array_keys($this->_aCharts['prices']['graph']['prices']) as $sDateTime){
-            $sCurrentDiv1 = substr($sDateTime, $aDateDivision1[0], $aDateDivision1[1]);
-            $sCurrentDiv2 = substr($sDateTime, $aDateDivision2[0], $aDateDivision2[1]);
+            $oDate = DateTime::createFromFormat('Y m d H:i', substr($sDateTime, 0, 7).' '.substr($sDateTime, 11));
+            
+            $sCurrentDiv1 = $oDate->format($sDateDivision1);
+            $sCurrentDiv2 = $oDate->format($sDateDivision2);
             
             if (!is_null($sPreviousDiv1) && ($sCurrentDiv1!=$sPreviousDiv1)){
+                $iMarkX = $iMark;
+                if (($sGraphTimeInterval=='1W')){
+                    $oNextWeekDate = new DateTime($oDate->format('Y-m-d'));
+                    $oNextWeekDate->add(new DateInterval('P7D'));
+                    if ($oNextWeekDate->format('d')>3) $iMarkX = $iMark+1;
+                }
+
                 $aAbscissaColor = ($sCurrentDiv2 != $sPreviousDiv2) ? array('r'=>255, 'g'=>0, 'b'=>0) : array('r'=>180, 'g'=>180, 'b'=>180);
-                $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMark*$iPriceWidth))
+                $this->_oImageChart->drawAbscissa(($this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMarkX*$iPriceWidth))
                                                 , $this->_aCharts['prices']['graph']['corners']['y']
                                                 , ($this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+2)
                                                 , $aAbscissaColor);
                 $this->_oImageChart->drawLabel(1
-                                            , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMark*$iPriceWidth)+((($iMark-$iPreviousMark)/2)*$iPriceWidth)
+                                            , $this->_aCharts['prices']['graph']['corners']['x']+$this->_aCharts['prices']['graph']['corners']['w']-($iMarkX*$iPriceWidth)+((($iMarkX-$iPreviousMark)/2)*$iPriceWidth)
                                             , $this->_aCharts['prices']['graph']['corners']['y']+$this->_aCharts['prices']['graph']['corners']['h']+4
                                             , $sPreviousDiv1
                                             , array('r'=>50,'g'=>50,'b'=>50));

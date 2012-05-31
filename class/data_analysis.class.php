@@ -605,7 +605,7 @@ Gains in a row 2.67
         }
     }
     
-    private function _strategy8(){
+    private function _strategy_daily1(){
         $oPreviousRealPrice = NULL;
         $aPreviousPriceIndicatorsData = NULL;
         
@@ -619,11 +619,11 @@ Gains in a row 2.67
             $iCurrentDay=substr($sDateTime,11,2);
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
             
-            if (!is_null($iPreviousDay)){ echo "$iPreviousDay ---- $iCurrentDay <br>";
-                if ($iPreviousDay!=$iCurrentDay){
-                    $nPriceAtStartOfDay = $oRealPrice->getOpen();
-                    $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
-                }
+            if (!is_null($iPreviousDay)){
+//                var_dump($aIndicatorsData['RSI']);exit;
+//                if ($aIndicatorsData['RSI'])
+//                $nPriceAtStartOfDay = $oRealPrice->getOpen();
+//                $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
             }
             
             

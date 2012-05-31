@@ -19,15 +19,20 @@ class realChart {
     }
     
     public function addPrice($sDateTime, realPrice $oRealPrice){
-        
-        $sDay = substr($sDateTime,0,10);
-        $iDay = strtotime($sDay);
-        $sFinalDate = date('Y m W d',$iDay);
+        $oDate = new DateTime($sDateTime);
         if (($this->_sGraphTimeInterval=='1D') || ($this->_sGraphTimeInterval=='1W')){
-            $sFinalTime='00:00';
+            if ($this->_sGraphTimeInterval=='1W'){
+                $iWeek = $oDate->format('w');
+                if ($iWeek>1){
+                    $oDate->sub(new DateInterval('P'.($iWeek-1).'D'));
+                }
+            }
+            $sFinalDate = $oDate->format('Y m W d');
+            $sFinalTime = '00:00';
         }
         else {
-            $sHour = substr($sDateTime,11,5);
+            $sFinalDate = $oDate->format('Y m W d');
+            $sHour = $oDate->format('H:i');
 
             switch($this->_sGraphTimeInterval) {
                 case '5': $aPossibleTimes = array(':00',':05',':10',':15',':20',':25',':30',':35',':40',':45',':50',':55');
