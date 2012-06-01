@@ -16,9 +16,25 @@ class data_postgresql {
     }
     
     public function get_dukascopy_quotes(){
+        
         $sQuery = 'SELECT "DQI_dukascopy_id"'
                         .' ,"DQI_quote_id"'
                  .' FROM public."DUKASCOPY_QUOTES_ID";';
+        return self::$_oPostgres->query($sQuery);
+    }
+    
+    public function get_quotes(){
+        $sQuery = 'SELECT \'DUKAS --- \'||"DQI_dukascopy_id" AS source_id'
+                        .',\'DUKAS --- \'||"DQI_quote_id" AS quote_id'
+                .' FROM public."DUKASCOPY_QUOTES_ID"'
+                .' UNION ALL'
+                .' SELECT \'TELEG --- \'||"TQI_telegraph_id" AS source_id'
+                        .' ,\'TELEG --- \'||"TQI_quote_id" AS quote_id'
+                .' FROM public."TELEGRAPH_QUOTES_ID"'
+                .' UNION ALL'
+                .' SELECT \'YAHOO --- \'||"YQI_yahoo_id" AS source_id'
+                        .' ,\'YAHOO --- \'||"YQI_quote_id" AS quote_id'
+                .' FROM public."YAHOO_QUOTES_ID"';
         
         return self::$_oPostgres->query($sQuery);
     }
@@ -41,8 +57,7 @@ class data_postgresql {
                                                                 .' AND "RD_interval" = $2'
                                                                 .' ORDER BY date_trunc(\'day\',"RD_datetime") desc'
                                                                 .' LIMIT $3);';
-        
-        
+
         return self::$_oPostgres->query($sQuery, array($sQuote
                                                     ,$iInterval
                                                     ,$iDays));
@@ -163,6 +178,69 @@ class data_postgresql {
                                                 ,$RT_open         
                                                 ,$RT_close        
                                                 ,$RT_volume));
+    }
+    
+    
+    public function insertYahooData($RY_yahoo_id
+                                    ,$RY_interval
+                                    ,$RY_datetime     
+                                    ,$RY_min       
+                                    ,$RY_max          
+                                    ,$RY_open         
+                                    ,$RY_close        
+                                    ,$RY_volume) {
+                                                    
+        $insertQuery = 'INSERT INTO "RAW_YAHOO"( "RY_yahoo_id"'     // 1
+                                            . ',"RY_interval"'      // 2
+                                            . ',"RY_datetime"'      // 3
+                                            . ',"RY_min"'           // 4
+                                            . ',"RY_max"'           // 5
+                                            . ',"RY_open"'          // 6
+                                            . ',"RY_close"'         // 7
+                                            . ',"RY_volume")'       // 8
+                                    . 'VALUES ($1'
+                                            .',$2'
+                                            .',$3'
+                                            .',$4'
+                                            .',$5'
+                                            .',$6'
+                                            .',$7'
+                                            .',$8);';
+        
+        return self::$_oPostgres->query($insertQuery
+                                        , array( $RY_yahoo_id
+                                                ,$RY_interval
+                                                ,$RY_datetime     
+                                                ,$RY_min       
+                                                ,$RY_max          
+                                                ,$RY_open         
+                                                ,$RY_close        
+                                                ,$RY_volume));
+    }
+    
+    
+    public function getYahooTPOData($sQuote, $iInterval, $iDays){
+        $sQuery = 'SELECT "RY_yahoo_id" as quote_id'
+                        .' ,"RY_interval"   as interval'
+                        .' ,to_char("RY_datetime",\'YYYY-MM-DD HH24:MI:\')||\'00\'   as datetime'
+                        .' ,"RY_min"        as min'
+                        .' ,"RY_max"        as max'
+                        .' ,"RY_open"       as open'
+                        .' ,"RY_close"      as close'
+                        .' ,"RY_volume"     as volume'
+                 .' FROM public."RAW_YAHOO"'
+                 .' WHERE "RY_yahoo_id" = $1'
+                    .' AND "RY_interval" = $2'
+                    .' AND date_trunc(\'day\',"RY_datetime") in ( SELECT distinct date_trunc(\'day\',"RY_datetime")'
+                                                                .' FROM public."RAW_YAHOO" '
+                                                                .' WHERE "RY_yahoo_id" = $1'
+                                                                .' AND "RY_interval" = $2'
+                                                                .' ORDER BY date_trunc(\'day\',"RY_datetime") desc'
+                                                                .' LIMIT $3);';
+
+        return self::$_oPostgres->query($sQuery, array($sQuote
+                                                    ,$iInterval
+                                                    ,$iDays));
     }
 }
 ?>

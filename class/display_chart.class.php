@@ -43,22 +43,27 @@ class display_char {
     }
     
     public function build_chart($sQuoteId,$iInterval,$iDays){
-        $oDataInterface = new data_interface();
         
-        $aResultSet = $oDataInterface->getDukascopyTPOData($sQuoteId,(($iInterval=='1W' || $iInterval=='1D') ? '1D':60),$iDays);
-        $aDukascopyQuotes = $oDataInterface->get_dukascopy_quotes();
         
-        foreach($aDukascopyQuotes as $aQuote){
-            if ($aQuote['DQI_dukascopy_id']==$sQuoteId){
-                $sQuote = $aQuote['DQI_quote_id'];
-            }
-        }
-        
+        $aQuote = explode(' --- ', $sQuoteId);
         //http://localhost/mom/chart.php?ma=10,20&bol=10,2&rsi=14&sar=0.02,0.02,0.2
 
-        
         $Zoom = 1;
-        $oRealChart = new realChart($sQuote, $iInterval, $Zoom, $this->_aIndicatorsSettings);
+        $oRealChart = new realChart($aQuote[1], $iInterval, $Zoom, $this->_aIndicatorsSettings);
+        $oDataInterface = new data_interface();
+        
+        switch($aQuote[0]){
+            case 'DUKAS':
+                $sTPOSource = 'getDukascopyTPOData';
+            break;
+            case 'YAHOO':
+                $sTPOSource = 'getYahooTPOData';
+            break;
+        }
+        
+        
+        
+        $aResultSet = $oDataInterface->$sTPOSource($aQuote[1],(($iInterval=='1W' || $iInterval=='1D') ? '1D':60),$iDays);
         foreach($aResultSet as $aDataPrice){
             $oRealChart->addPrice($aDataPrice['datetime'],new candlestick($aDataPrice['datetime']
                                                                         ,$aDataPrice['min']
@@ -79,7 +84,6 @@ class display_char {
         $this->_oGraphicalChart->draw();
     }
 }
-
 if (array_key_exists('chart_dukascopy', $_POST)){
     $aIndicators = array('ma'   => array(20,50,100)
                         ,'bol'  => array('n'=>20,'std_dev'=>2)
@@ -87,7 +91,7 @@ if (array_key_exists('chart_dukascopy', $_POST)){
                         ,'sto'  => array('n' => 14, 'k' => 3, 'd'=> 5)
                         ,'sar'  => array('af0' => 0.02, 'afX'=> 0.02, 'afMax'=> 0.2));
     $oDisplayChart = new display_char($aIndicators);
-    $aPrices = $oDisplayChart->build_chart($_POST['quote_dukascopy_id'],$_POST['interval'],$_POST['days']);
+    $aPrices = $oDisplayChart->build_chart($_POST['quote_id'],$_POST['interval'],$_POST['days']);
     
     $oDataAnalysis = new data_analysis($aPrices);
     $oDataAnalysis->run('strategy_daily1');

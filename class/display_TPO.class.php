@@ -2,30 +2,23 @@
 require_once('class/data_interface.class.php');
 
 class display_TPO {
-    
+    private $_sSource;
     private $_sQuoteId;
     private $_iInterval;
     private $_iDays;
     private $_nPriceInterval;
     
-    function display_TPO($iInterval, $iDays, $nPriceInterval, $iGraphWidth){
+    function display_TPO($sQuoteId, $iInterval, $iDays, $nPriceInterval, $iGraphWidth){
+        $aQuote = explode(' --- ',$sQuoteId);
+        $this->_sSource     = $aQuote[0];
+        $this->_sQuoteId    = $aQuote[1];
         $this->_iInterval   = $iInterval;
         $this->_iDays       = $iDays;
-        $this->_nPriceInterval       = $nPriceInterval;
-        $this->_iGraphWidth       = $iGraphWidth;
+        $this->_nPriceInterval  = $nPriceInterval;
+        $this->_iGraphWidth     = $iGraphWidth;
     }
     
-    function getDayFrameDataTelegraph($sQuoteId){
-        $this->_sQuoteId    = $sQuoteId;
-        return $this->_getDayFrameData('TELEGRAPH');
-    }
-    
-    public function getDayFrameDataDukascopy($sQuoteId) {
-        $this->_sQuoteId    = $sQuoteId;
-        return $this->_getDayFrameData('DUKASCOPY');
-    }
-
-    private function _getDayFrameData($sSource){
+    public function getDayFrameData(){
         $aDays       = array( 'time_frame_data'  => array()
                             , 'min_value'       => 100000000000
                             , 'max_value'       => 0
@@ -34,16 +27,15 @@ class display_TPO {
                             , 'graph_width'     => $this->_iGraphWidth);
         
         $oDataInterface = new data_interface();
-        
-        switch ($sSource){
-            case 'DUKASCOPY':
+        switch ($this->_sSource){
+            case 'DUKAS':
                 $aResultSet = $oDataInterface->getDukascopyTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
             break;
-            case 'TELEGRAPH':
+            case 'TELEG':
                 $aResultSet = $oDataInterface->getTelegraphTPOData($this->_sQuoteId,$this->_iInterval,$this->_iDays);
             break;
         }
-
+        
         if (!empty($aResultSet)){
             foreach($aResultSet as $aResultSetLine){
                 $sDayKey = substr($aResultSetLine['datetime'],0,10);
@@ -215,14 +207,9 @@ class display_TPO {
     }
 }
 
-$oDisplayTPO = new display_TPO($_POST['interval']
+$oDisplayTPO = new display_TPO($_POST['quote_id']
+                                ,$_POST['interval']
                                 ,$_POST['days']
                                 ,$_POST['price_interval']
                                 ,$_POST['graph_width']); 
-
-if (array_key_exists('display_day_frame_tpo_dukascopy', $_POST)){
-    $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameDataDukascopy($_POST['quote_dukascopy_id']);
-}
-elseif (array_key_exists('display_day_frame_tpo_telegraph', $_POST)){
-    $oPage->day_frame_tpo = $oDisplayTPO->getDayFrameDataTelegraph($_POST['quote_telegraph_id']);
-}
+$oPage->day_frame_tpo = $oDisplayTPO->getDayFrameData();
