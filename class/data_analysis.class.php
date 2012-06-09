@@ -605,32 +605,333 @@ Gains in a row 2.67
         }
     }
     
+    
     private function _strategy_daily1(){
         $oPreviousRealPrice = NULL;
         $aPreviousPriceIndicatorsData = NULL;
         
-        $iPreviousDay = NULL;
-        
-        $nPriceAtStartOfDay = NULL;
-        $nPreviousDayClosePrice = NULL;
         $iTrading = NULL;
         
         foreach($this->_aPrices as $sDateTime=>$oRealPrice){
-            $iCurrentDay=substr($sDateTime,11,2);
             $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            if (!is_null($oPreviousRealPrice) 
+                    && !is_null($aIndicatorsData['RSI'][14]['real']) 
+                    && !is_null($aIndicatorsData['BOL'])){
+                
+                $bUp20 = ($aIndicatorsData['MA'][20]['real']>$aPreviousPriceIndicatorsData['MA'][20]['real']);
+                $bUp50 = ($aIndicatorsData['MA'][50]['real']>$aPreviousPriceIndicatorsData['MA'][50]['real']);
+                
+                if (!is_null($iTrading)){
+                    if ($aIndicatorsData['SAR']['real']['trend']!=$aPreviousPriceIndicatorsData['SAR']['real']['trend']){
+                        $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
+                    }
+                }
+                
+                
+                if ($aIndicatorsData['SAR']['real']['trend']!=$aPreviousPriceIndicatorsData['SAR']['real']['trend']){
+
+                    if ($aIndicatorsData['SAR']['real']['trend']=='up'){echo 1;
+                        $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                    }
+                    else {
+                        $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                    }
+                }
+            }
             
-            if (!is_null($iPreviousDay)){
-//                var_dump($aIndicatorsData['RSI']);exit;
-//                if ($aIndicatorsData['RSI'])
-//                $nPriceAtStartOfDay = $oRealPrice->getOpen();
-//                $nPreviousDayClosePrice = $oPreviousRealPrice->getClose();
+            
+            $aRealPriceTrades = $oRealPrice->getTrade();
+            
+            if (count($aRealPriceTrades) > 0){
+                $iCurrentTradeDir = $aRealPriceTrades[count($aRealPriceTrades)-1]['dir'];
+                $iTrading = ($iCurrentTradeDir==realPrice::TRADE_CLOSE) ? NULL:$iCurrentTradeDir;
             }
             
             
             
             $oPreviousRealPrice = $oRealPrice;
             $aPreviousPriceIndicatorsData = $aIndicatorsData;
-            $iPreviousDay = $iCurrentDay;
+        }
+    }
+    
+    
+    
+    private function _strategy_daily2(){
+        $aExtremes = array();
+        $aMA = array();
+        $bInTrend = false;
+        $bNewTrend = false;
+        $aDateTimes = array_keys($this->_aPrices);
+        $iDateTimeIndex=0;
+        while($iDateTimeIndex < count($aDateTimes)){
+            $oRealPrice = $this->_aPrices[$aDateTimes[$iDateTimeIndex]];
+            $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            if(!is_null($aIndicatorsData['RSI'][14]['real']) 
+               && !is_null($aIndicatorsData['BOL'])
+               && !is_null($aIndicatorsData['MA'][20]['real'])){
+                
+                if (count($aMA)>4){
+                    array_shift($aMA);
+                }
+                $aMA[] = $aIndicatorsData['MA'][20]['real'];
+                
+                for ($i=1, $iConsecutive=0; $i<count($aMA); $i++){
+                    if ($aMA[$i]>$aMA[$i-1]) $iConsecutive++;
+                    else $iConsecutive--;
+                }
+                echo $aDateTimes[$iDateTimeIndex]."   .... $iConsecutive   .... ".$aIndicatorsData['MA'][20]['real']."  \n";
+                $bNewTrend=((!$bInTrend) && (abs($iConsecutive)==3));
+                
+                if (abs($iConsecutive)==4){
+                    $bInTrend=true;
+                }
+                else {
+                    $bInTrend=false;
+                }
+                
+                if (empty($aExtremes)){
+                    $aExtremes[] = array('min' => $aDateTimes[$iDateTimeIndex]
+                                       , 'max' => $aDateTimes[$iDateTimeIndex]);
+                }
+                else {
+                    if ($bNewTrend){
+                        
+                        if ($this->_aPrices[$aDateTimes[$iDateTimeIndex]]->getClose() > $this->_aPrices[$aExtremes[count($aExtremes)-1]['max']]->getClose()){
+                            $aExtremes[count($aExtremes)-1]['max'] = $aDateTimes[$iDateTimeIndex];
+                        }
+                        if ($this->_aPrices[$aDateTimes[$iDateTimeIndex]]->getClose() < $this->_aPrices[$aExtremes[count($aExtremes)-1]['min']]->getClose()){
+                            $aExtremes[count($aExtremes)-1]['min'] = $aDateTimes[$iDateTimeIndex];
+                        }
+                        
+                        $sDateMin = $aExtremes[count($aExtremes)-1]['min'];
+                        $sDateMax = $aExtremes[count($aExtremes)-1]['max'];
+                        
+                        if ($sDateMin>$sDateMax){
+                            $iLastLimitIndex = array_search($sDateMin, $aDateTimes);
+                        }
+                        else {
+                            $iLastLimitIndex = array_search($sDateMax, $aDateTimes);
+                        }
+                        
+                        if ($iLastLimitIndex>0){
+                            $aDateTimes= array_slice($aDateTimes, $iLastLimitIndex);
+                            $iDateTimeIndex = 0;
+
+                            $aExtremes[] = array('min' => $aDateTimes[$iDateTimeIndex]
+                                               , 'max' => $aDateTimes[$iDateTimeIndex]);
+                        }
+                            
+                    }
+                    else {
+                        if ($this->_aPrices[$aDateTimes[$iDateTimeIndex]]->getClose() > $this->_aPrices[$aExtremes[count($aExtremes)-1]['max']]->getClose()){
+                            $aExtremes[count($aExtremes)-1]['max'] = $aDateTimes[$iDateTimeIndex];
+                        }
+                        if ($this->_aPrices[$aDateTimes[$iDateTimeIndex]]->getClose() < $this->_aPrices[$aExtremes[count($aExtremes)-1]['min']]->getClose()){
+                            $aExtremes[count($aExtremes)-1]['min'] = $aDateTimes[$iDateTimeIndex];
+                        }
+                    }
+                }
+            }
+            
+            $iDateTimeIndex++;
+        }
+        
+        foreach($aExtremes as $aExtreme){
+            if ($aExtreme['min']<$aExtreme['max']) {
+                $this->_aPrices[$aExtreme['min']]->addTrade(realPrice::TRADE_BUY, $this->_aPrices[$aExtreme['min']]->getClose());
+                $this->_aPrices[$aExtreme['max']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aExtreme['max']]->getClose());
+            }
+            else {
+                $this->_aPrices[$aExtreme['max']]->addTrade(realPrice::TRADE_SELL, $this->_aPrices[$aExtreme['max']]->getClose());
+                $this->_aPrices[$aExtreme['min']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aExtreme['min']]->getClose());
+            }
+        }
+    }
+    
+    
+    
+    
+    /*
+     * backup-strategy-daily2
+     */
+    private function _strategy_daily3(){
+        $iConsecutiveMark = 4;
+        $aDateTimes = array_keys($this->_aPrices);
+        $aMA = array();
+        $aDateTimesConsecutive = array();
+        for($i=0;$i < count($aDateTimes);$i++){
+            $aIndicatorsData = $this->_aPrices[$aDateTimes[$i]]->getIndicators()->getData();
+            if(!is_null($aIndicatorsData['RSI'][14]['real']) 
+               && !is_null($aIndicatorsData['BOL'])
+               && !is_null($aIndicatorsData['MA'][20]['real'])){
+           
+                if (count($aMA) > $iConsecutiveMark){
+                    array_shift($aMA);
+                }
+                $aMA[] = $aIndicatorsData['MA'][20]['real'];
+                
+                for ($i2=1, $iConsecutive=0; $i2<count($aMA); $i2++){
+                    if ($aMA[$i2]>$aMA[$i2-1]) $iConsecutive++;
+                    else $iConsecutive--;
+                }
+                
+                $aDateTimesConsecutive[] = array('datetime'    => $aDateTimes[$i]
+                                               , 'consecutive' => $iConsecutive);
+            }
+        }
+        
+        $aDateTimesTrends = array();
+        $bInTrend = NULL;
+        for($i=0;$i<count($aDateTimesConsecutive);$i++){
+            if (empty($aDateTimesTrends)){
+                $aDateTimesTrends[] = array('min' => $i
+                                           ,'max' => $i);
+                $iLastUpdate = $i;
+            }
+            else {
+                if (is_null($bInTrend)){
+                    if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() > $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['max']]['datetime']]->getClose()){
+                        $aDateTimesTrends[count($aDateTimesTrends)-1]['max'] = $i;
+                        $iLastUpdate = $i;
+                    }
+
+                    if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() < $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['min']]['datetime']]->getClose()){
+                        $aDateTimesTrends[count($aDateTimesTrends)-1]['min'] = $i;
+                        $iLastUpdate = $i;
+                    }
+                    
+                    if (($aDateTimesConsecutive[$i]['consecutive']==$iConsecutiveMark)) $bInTrend = true;
+                }
+                else {
+                    if (($aDateTimesConsecutive[$i]['consecutive']==$iConsecutiveMark)) {
+                        if ($bInTrend){
+                            if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() > $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['max']]['datetime']]->getClose()){
+                                $aDateTimesTrends[count($aDateTimesTrends)-1]['max'] = $i;
+                                $iLastUpdate = $i;
+                            }
+
+                            if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() < $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['min']]['datetime']]->getClose()){
+                                $aDateTimesTrends[count($aDateTimesTrends)-1]['min'] = $i;
+                                $iLastUpdate = $i;
+                            }
+                        }
+                        else {
+                            $aDateTimesTrends[] = array('min' => $iLastUpdate
+                                                       ,'max' => $iLastUpdate);
+                            for($i2=$iLastUpdate;$i2<=$i;$i2++){
+                                if ($this->_aPrices[$aDateTimesConsecutive[$i2]['datetime']]->getClose() > $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['max']]['datetime']]->getClose()){
+                                    $aDateTimesTrends[count($aDateTimesTrends)-1]['max'] = $i2;
+                                    $iLastUpdate = $i2;
+                                }
+
+                                if ($this->_aPrices[$aDateTimesConsecutive[$i2]['datetime']]->getClose() < $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['min']]['datetime']]->getClose()){
+                                    $aDateTimesTrends[count($aDateTimesTrends)-1]['min'] = $i2;
+                                    $iLastUpdate = $i2;
+                                }
+                            }
+                            $bInTrend = true;
+                        }
+                    }
+                    else {
+                        if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() > $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['max']]['datetime']]->getClose()){
+                            $aDateTimesTrends[count($aDateTimesTrends)-1]['max'] = $i;
+                            $iLastUpdate = $i;
+                        }
+
+                        if ($this->_aPrices[$aDateTimesConsecutive[$i]['datetime']]->getClose() < $this->_aPrices[$aDateTimesConsecutive[$aDateTimesTrends[count($aDateTimesTrends)-1]['min']]['datetime']]->getClose()){
+                            $aDateTimesTrends[count($aDateTimesTrends)-1]['min'] = $i;
+                            $iLastUpdate = $i;
+                        }
+                        $bInTrend = false;
+                    }
+                }
+            }
+        }
+        
+        $aTrendData = array();
+//        echo "<table>";
+        foreach($aDateTimesTrends as $i=>$aTrend){
+            $bUpTrend = ($aDateTimesConsecutive[$aTrend['min']]['datetime']<$aDateTimesConsecutive[$aTrend['max']]['datetime']);
+            if ($bUpTrend) {
+                $oRealPriceStart = $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']];
+                $oRealPriceEnd = $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']];
+                
+                $aDownIndicatorsData = $oRealPriceStart->getIndicators()->getData();
+                $aUpIndicatorsData = $oRealPriceEnd->getIndicators()->getData();
+            }
+            else {
+                $oRealPriceStart = $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']];
+                $oRealPriceEnd = $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']];
+                
+                $aUpIndicatorsData = $oRealPriceStart->getIndicators()->getData();
+                $aDownIndicatorsData = $oRealPriceEnd->getIndicators()->getData();
+            }
+//            echo "\n<br>\n";
+//            echo ($bUpTrend) ? "   UP":"DOWN";
+//            echo ",".$oRealPriceStart->getClose().",".$oRealPriceEnd->getClose();
+//            echo ",".$aDownIndicatorsData['RSI'][14]['real']
+//                .",".$aDownIndicatorsData['BOL']['real']['up']
+//                .",".$aDownIndicatorsData['BOL']['real']['down']
+//                .",".$aDownIndicatorsData['MA'][20]['real']
+//                .",".$aDownIndicatorsData['STO']['real']['k']
+//                .",".$aDownIndicatorsData['STO']['real']['d']
+//                .",".$aDownIndicatorsData['SAR']['real']['psar'];
+            
+            $aTrendData[] = array('trend'   => (($bUpTrend) ? "UP":"DOWN")
+                                 ,'start'   => $oRealPriceStart->getClose()
+                                 ,'end'     => $oRealPriceEnd->getClose()
+                                 ,'rsi'     => $aDownIndicatorsData['RSI'][14]['real']
+                                 ,'bol_up'  => $aDownIndicatorsData['BOL']['real']['up']
+                                 ,'bol_down' => $aDownIndicatorsData['BOL']['real']['up']
+                                 ,'ma_20'   => $aDownIndicatorsData['MA'][20]['real']
+                                 ,'sto_k'   => $aDownIndicatorsData['STO']['real']['k']
+                                 ,'sto_d'   => $aDownIndicatorsData['STO']['real']['d']
+                                 ,'psar'    => $aDownIndicatorsData['SAR']['real']['psar']
+                                 ,'sar_trend' => $aDownIndicatorsData['SAR']['real']['trend']);
+            
+//            echo "<tr>";
+//            echo "<td>".(($bUpTrend) ? "UP":"DOWN");
+//            echo "</td><td>".$oRealPriceStart->getClose();
+//            echo "</td><td>".$oRealPriceEnd->getClose();
+//            echo "</td><td>".$aDownIndicatorsData['RSI'][14]['real']
+//                ."</td><td>".$aDownIndicatorsData['BOL']['real']['up']
+//                ."</td><td>".$aDownIndicatorsData['BOL']['real']['down']
+//                ."</td><td>".$aDownIndicatorsData['MA'][20]['real']
+//                ."</td><td>".$aDownIndicatorsData['STO']['real']['k']
+//                ."</td><td>".$aDownIndicatorsData['STO']['real']['d']
+//                ."</td><td>".$aDownIndicatorsData['SAR']['real']['psar'];
+//            echo "</td>";
+//            echo "</tr>";
+            
+//            echo "<tr><td>".implode('</td><td>',$aTrendData[count($aTrendData)-1])."</td></tr>";
+        }
+        
+        echo "<table>";
+        echo "<tr><td>".implode('</td><td>',array_keys($aTrendData[0]))."</td></tr>";
+        
+        for($i=0;$i<count($aTrendData);$i++){
+            if ($aTrendData[$i]['trend']=='UP'){
+                $aTrendData[$i-count($aDateTimesTrends)]=$aTrendData[$i];
+                unset($aTrendData[$i]);
+            }
+        }
+        ksort($aTrendData);
+        foreach(array_keys($aTrendData) as $i){
+            $aTrendData[$i]['profit'] = abs($aTrendData[$i]['start']-$aTrendData[$i]['end']);
+            $aTrendData[$i]['profit_pct'] = 100*($aTrendData[$i]['profit']/$aTrendData[$i]['start']);
+            echo "<tr><td>".implode('</td><td>',$aTrendData[$i])."</td></tr>";
+        }
+        echo "</table>";
+        
+        foreach($aDateTimesTrends as $i=>$aTrend){
+            if ($aDateTimesConsecutive[$aTrend['min']]['datetime']<$aDateTimesConsecutive[$aTrend['max']]['datetime']) {
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_BUY, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
+            }
+            else {
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_SELL, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
+            }
         }
     }
 }

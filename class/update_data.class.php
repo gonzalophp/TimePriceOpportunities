@@ -29,7 +29,6 @@ class update_data {
                 $this->_update_from_yahoo();
             break;
         }
-        
     }
     
     public function _update_from_yahoo(){
@@ -60,10 +59,6 @@ class update_data {
                                                             , $aLine[1]
                                                             , $aLine[4]
                                                             , $aLine[5]);
-                                                //
-//        Date        ,Open       ,High       ,Low        ,Close      ,Volume     ,Adj Close
-//        2012-05-30  ,6360.79    ,6392.21    ,6258.89    ,6280.80    ,29677900   ,6280.80
-//        
             }
         }
     }
@@ -94,11 +89,6 @@ class update_data {
         
     }
     
-    private function _getLastDate(){
-        $hour = date('Hi',time());
-        return date('m.d.Y', (($hour > 2100) ? time():(time()-28800)));
-    }
-    
     private function _checkCachedData(){
         $bLocalFileOutDated = true;
 
@@ -123,11 +113,6 @@ class update_data {
         // HARDCODED
         // HARDCODED
         $bLocalFileOutDated = true;
-        
-//        $oDataInterface = new data_interface();
-//        $aResultSet = $oDataInterface->getFirstDateDukascopyData($this->_sQuoteId,$this->_iInterval);
-//        $this->_sStartDate = date('m.d.Y',strtotime($aResultSet['0']['min']));
-        var_dump($this->_sStartDate);
         // HARDCODED
         // HARDCODED
         // HARDCODED
@@ -140,8 +125,7 @@ class update_data {
         
         if ($bLocalFileOutDated){
             $oRemoteFile = new file('http://www.dukascopy.com/freeApplets/exp/exp.php'
-//                    .'?fromD='.$this->_getLastDate()        // mm.dd.YYYY - last date
-                    .'?fromD='.$this->_sStartDate        // mm.dd.YYYY - last date
+                    .'?fromD='.$this->_sEndDate        // mm.dd.YYYY - last date
                     .'&np=2000'                              //number of points
                     .'&interval='.$this->_iInterval         //time interval
                     .'&DF=m%2Fd%2FY'                        // date format
@@ -162,4 +146,3 @@ $oUpdateData = new update_data($_POST['quote_id']
                               ,$_POST['dateend']); 
 $oUpdateData->run();
 ?>
-    

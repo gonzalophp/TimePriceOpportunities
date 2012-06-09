@@ -20,7 +20,7 @@ define('DB_NAME','postgres');
 define('DB_USER','postgres');
 define('DB_PASSWORD','postgres');
 
-/*
+
 function customError($errno, $errstr) {
     echo "<h style='color:blue; font-weight:bold;'>CUSTON ERROR:</h><br/> [$errno] $errstr";
     
@@ -31,4 +31,3 @@ function customError($errno, $errstr) {
 }
 
 set_error_handler("customError");
- */

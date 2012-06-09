@@ -10,7 +10,7 @@ class realPrice {
     private $_aDateTimes;
     private $_iGraphWidth;
     private $_oIndicators;
-    private $_iTrade;
+    private $_aTrade;
     private $_oGraphicalChart;
     
     const TRADE_SELL=-1;
