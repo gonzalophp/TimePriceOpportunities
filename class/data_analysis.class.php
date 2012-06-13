@@ -763,7 +763,8 @@ Gains in a row 2.67
             $aIndicatorsData = $this->_aPrices[$aDateTimes[$i]]->getIndicators()->getData();
             if(!is_null($aIndicatorsData['RSI'][14]['real']) 
                && !is_null($aIndicatorsData['BOL'])
-               && !is_null($aIndicatorsData['MA'][20]['real'])){
+               && !is_null($aIndicatorsData['MA'][20]['real'])
+               && !is_null($aIndicatorsData['MA'][50]['real'])){
            
                 if (count($aMA) > $iConsecutiveMark){
                     array_shift($aMA);
@@ -848,8 +849,19 @@ Gains in a row 2.67
             }
         }
         
+        foreach($aDateTimesTrends as $i=>$aTrend){
+            if ($aDateTimesConsecutive[$aTrend['min']]['datetime']<$aDateTimesConsecutive[$aTrend['max']]['datetime']) {
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_BUY, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
+            }
+            else {
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_SELL, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
+                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
+            }
+        }
+        
         $aTrendData = array();
-//        echo "<table>";
+
         foreach($aDateTimesTrends as $i=>$aTrend){
             $bUpTrend = ($aDateTimesConsecutive[$aTrend['min']]['datetime']<$aDateTimesConsecutive[$aTrend['max']]['datetime']);
             if ($bUpTrend) {
@@ -866,73 +878,126 @@ Gains in a row 2.67
                 $aUpIndicatorsData = $oRealPriceStart->getIndicators()->getData();
                 $aDownIndicatorsData = $oRealPriceEnd->getIndicators()->getData();
             }
-//            echo "\n<br>\n";
-//            echo ($bUpTrend) ? "   UP":"DOWN";
-//            echo ",".$oRealPriceStart->getClose().",".$oRealPriceEnd->getClose();
-//            echo ",".$aDownIndicatorsData['RSI'][14]['real']
-//                .",".$aDownIndicatorsData['BOL']['real']['up']
-//                .",".$aDownIndicatorsData['BOL']['real']['down']
-//                .",".$aDownIndicatorsData['MA'][20]['real']
-//                .",".$aDownIndicatorsData['STO']['real']['k']
-//                .",".$aDownIndicatorsData['STO']['real']['d']
-//                .",".$aDownIndicatorsData['SAR']['real']['psar'];
             
             $aTrendData[] = array('trend'   => (($bUpTrend) ? "UP":"DOWN")
                                  ,'start'   => $oRealPriceStart->getClose()
                                  ,'end'     => $oRealPriceEnd->getClose()
-                                 ,'rsi'     => $aDownIndicatorsData['RSI'][14]['real']
-                                 ,'bol_up'  => $aDownIndicatorsData['BOL']['real']['up']
-                                 ,'bol_down' => $aDownIndicatorsData['BOL']['real']['up']
-                                 ,'ma_20'   => $aDownIndicatorsData['MA'][20]['real']
-                                 ,'sto_k'   => $aDownIndicatorsData['STO']['real']['k']
-                                 ,'sto_d'   => $aDownIndicatorsData['STO']['real']['d']
-                                 ,'psar'    => $aDownIndicatorsData['SAR']['real']['psar']
-                                 ,'sar_trend' => $aDownIndicatorsData['SAR']['real']['trend']);
-            
-//            echo "<tr>";
-//            echo "<td>".(($bUpTrend) ? "UP":"DOWN");
-//            echo "</td><td>".$oRealPriceStart->getClose();
-//            echo "</td><td>".$oRealPriceEnd->getClose();
-//            echo "</td><td>".$aDownIndicatorsData['RSI'][14]['real']
-//                ."</td><td>".$aDownIndicatorsData['BOL']['real']['up']
-//                ."</td><td>".$aDownIndicatorsData['BOL']['real']['down']
-//                ."</td><td>".$aDownIndicatorsData['MA'][20]['real']
-//                ."</td><td>".$aDownIndicatorsData['STO']['real']['k']
-//                ."</td><td>".$aDownIndicatorsData['STO']['real']['d']
-//                ."</td><td>".$aDownIndicatorsData['SAR']['real']['psar'];
-//            echo "</td>";
-//            echo "</tr>";
-            
-//            echo "<tr><td>".implode('</td><td>',$aTrendData[count($aTrendData)-1])."</td></tr>";
+                                 ,'down_rsi'     => $aDownIndicatorsData['RSI'][14]['real']
+                                 ,'down_bol_up'  => $aDownIndicatorsData['BOL']['real']['up']
+                                 ,'down_bol_down' => $aDownIndicatorsData['BOL']['real']['down']
+                                 ,'down_ma_20'   => $aDownIndicatorsData['MA'][20]['real']
+                                 ,'down_sto_k'   => $aDownIndicatorsData['STO']['real']['k']
+                                 ,'down_sto_d'   => $aDownIndicatorsData['STO']['real']['d']
+                                 ,'down_psar'    => $aDownIndicatorsData['SAR']['real']['psar']
+                                 ,'down_sar_trend' => $aDownIndicatorsData['SAR']['real']['trend']
+                                 ,'up_rsi'      => $aUpIndicatorsData['RSI'][14]['real']
+                                 ,'up_bol_up'   => $aUpIndicatorsData['BOL']['real']['up']
+                                 ,'up_bol_down' => $aUpIndicatorsData['BOL']['real']['down']
+                                 ,'up_ma_20'    => $aUpIndicatorsData['MA'][20]['real']
+                                 ,'up_sto_k'    => $aUpIndicatorsData['STO']['real']['k']
+                                 ,'up_sto_d'    => $aUpIndicatorsData['STO']['real']['d']
+                                 ,'up_psar'     => $aUpIndicatorsData['SAR']['real']['psar']
+                                 ,'up_sar_trend' => $aUpIndicatorsData['SAR']['real']['trend']
+                                 ,'ma50_pct' => (($bUpTrend) ? (100*($aDownIndicatorsData['MA'][50]['real']-$oRealPriceStart->getClose())/$oRealPriceStart->getClose()):
+                                                               (100*($oRealPriceStart->getClose()-$aUpIndicatorsData['MA'][50]['real'])/$oRealPriceStart->getClose()))
+                                 ,'profit'      => NULL
+                                 ,'profit_pct'  => NULL);
+
         }
         
-        echo "<table>";
-        echo "<tr><td>".implode('</td><td>',array_keys($aTrendData[0]))."</td></tr>";
         
-        for($i=0;$i<count($aTrendData);$i++){
-            if ($aTrendData[$i]['trend']=='UP'){
-                $aTrendData[$i-count($aDateTimesTrends)]=$aTrendData[$i];
-                unset($aTrendData[$i]);
+        if (!empty($aTrendData)){
+            echo "<table>";
+            echo "<tr><td>".implode('</td><td>',array_keys($aTrendData[0]))."</td></tr>";
+
+            for($i=0;$i<count($aTrendData);$i++){
+                if ($aTrendData[$i]['trend']=='UP'){
+                    $aTrendData[$i-count($aDateTimesTrends)]=$aTrendData[$i];
+                    unset($aTrendData[$i]);
+                }
             }
+            ksort($aTrendData);
+            foreach(array_keys($aTrendData) as $i){
+                $aTrendData[$i]['profit'] = abs($aTrendData[$i]['start']-$aTrendData[$i]['end']);
+                $aTrendData[$i]['profit_pct'] = 100*($aTrendData[$i]['profit']/$aTrendData[$i]['start']);
+                echo "<tr><td>".implode('</td><td>',$aTrendData[$i])."</td></tr>";
+            }
+            echo "</table>";
         }
-        ksort($aTrendData);
-        foreach(array_keys($aTrendData) as $i){
-            $aTrendData[$i]['profit'] = abs($aTrendData[$i]['start']-$aTrendData[$i]['end']);
-            $aTrendData[$i]['profit_pct'] = 100*($aTrendData[$i]['profit']/$aTrendData[$i]['start']);
-            echo "<tr><td>".implode('</td><td>',$aTrendData[$i])."</td></tr>";
-        }
-        echo "</table>";
         
-        foreach($aDateTimesTrends as $i=>$aTrend){
-            if ($aDateTimesConsecutive[$aTrend['min']]['datetime']<$aDateTimesConsecutive[$aTrend['max']]['datetime']) {
-                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_BUY, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
-                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
+        
+        $aRSI = array();
+        while(list($key,$aData) = each($aTrendData)){
+            $iRSIKey = ((int)($aTrendData[$key]['down_rsi']/2));
+            if (array_key_exists($iRSIKey,$aRSI)){
+                $aRSI[$iRSIKey] += $aTrendData[$key]['profit_pct'];
             }
             else {
-                $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->addTrade(realPrice::TRADE_SELL, $this->_aPrices[$aDateTimesConsecutive[$aTrend['max']]['datetime']]->getClose());
-                $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->addTrade(realPrice::TRADE_CLOSE, $this->_aPrices[$aDateTimesConsecutive[$aTrend['min']]['datetime']]->getClose());
+                $aRSI[$iRSIKey] = $aTrendData[$key]['profit_pct'];
             }
         }
+        
+        ksort($aRSI);
+        
+        $sHTMLRSIProffit = "<table>";
+        $sHTMLRSIProffit .= "<tr><td>RSI</td><td>Proffit</td></tr>";
+        while(list($iRSI,$nProffit)=each($aRSI)){
+            $iRSI*=2;
+            $sHTMLRSIProffit .= "<tr><td>$iRSI</td><td>$nProffit</td></tr>";
+        }
+        $sHTMLRSIProffit .= "</table>";
+        
+        echo $sHTMLRSIProffit;
+        
+        
+        
+        
+        $aSTO = array();
+        reset($aTrendData);
+        while(list($key,$aData) = each($aTrendData)){
+            $iSTOk = ((int)($aTrendData[$key]['down_sto_k']/2));
+            if (array_key_exists($iSTOk,$aSTO)){
+                if (array_key_exists('k',$aSTO[$iSTOk])){
+                    $aSTO[$iSTOk]['k'] += $aTrendData[$key]['profit_pct'];
+                }
+                else {
+                    $aSTO[$iSTOk]['k'] = $aTrendData[$key]['profit_pct'];
+                }
+            }
+            else {
+                $aSTO[$iSTOk] = array('k' => $aTrendData[$key]['profit_pct']);
+            }
+            echo 1;
+            $iSTOd = ((int)($aTrendData[$key]['down_sto_d']/2));
+            if (array_key_exists($iSTOd,$aSTO)){
+                if (array_key_exists('d', $aSTO[$iSTOd])){
+                    $aSTO[$iSTOd]['d'] += $aTrendData[$key]['profit_pct'];
+                }
+                else {
+                    $aSTO[$iSTOd]['d'] = $aTrendData[$key]['profit_pct'];
+                }
+                
+            }
+            else {
+                $aSTO[$iSTOd] = array('d' => $aTrendData[$key]['profit_pct']);
+            }
+        }
+        ksort($aSTO);
+        
+        $sHTMLSTOProffit = "<table>";
+        $sHTMLSTOProffit .= "<tr><td>STO Value</td><td>Proffit K</td><td>Proffit D</td></tr>";
+        while(list($iSTOValue,$aSTOData)=each($aSTO)){
+            
+            $nProffitK = array_key_exists('k',$aSTO[$iSTOValue]) ? $aSTO[$iSTOValue]['k'] :0;
+            $nProffitD = array_key_exists('d',$aSTO[$iSTOValue]) ? $aSTO[$iSTOValue]['d'] :0;
+            $iSTOValue*=2;
+            
+            $sHTMLSTOProffit .= "<tr><td>$iSTOValue</td><td>$nProffitK</td><td>$nProffitD</td></tr>";
+        }
+        $sHTMLSTOProffit .= "</table>";
+        
+        echo $sHTMLSTOProffit;
+        
     }
 }
 ?>

@@ -1,6 +1,6 @@
 <?php
 require_once('class/chart/realchart.class.php');
-require_once('class/chart/imagechart.class.php');
+require_once('class/chart/imageChart.class.php');
 
 class graphicalChart {
     private $_aCharts;
