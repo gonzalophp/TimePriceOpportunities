@@ -18,7 +18,6 @@ class imageChart {
                                    ,'y2' => $this->_iHeight-($this->_iFrame+1));
         $this->_rImage = imagecreate($this->_iWidth, $this->_iHeight);
         imagefill($this->_rImage, 0, 0 , $this->_getColor(230, 230, 230));
-//        imagerectangle($this->_rImage, $this->_aChartArea['x1'], $this->_aChartArea['y1'], $this->_aChartArea['x2'], $this->_aChartArea['y2'], $this->_getColor(128, 128, 128));
     }
     
     public function drawFrame($x1,$y1,$x2,$y2){
@@ -32,6 +31,12 @@ class imageChart {
     
     public function drawLabel($iFontSize, $x, $y, $sLabel, $aColor){
         imagestring($this->_rImage, $iFontSize, $x, $y, $sLabel, $this->_getColor($aColor['r'], $aColor['g'], $aColor['b']));
+    }
+    
+    public function drawValueLabel($iFontSize, $y, $sLabel){
+        imagerectangle($this->_rImage, $this->_aChartArea['x2']-($this->_iFrame/2)+1, $y-6, $this->_iWidth-1, $y+6, $this->_getColor(0, 0, 0));
+        imagefilledrectangle($this->_rImage, $this->_aChartArea['x2']-($this->_iFrame/2)+2, $y-5, $this->_iWidth-2, $y+5, $this->_getColor(210, 255, 0));
+        imagestring($this->_rImage, $iFontSize, $this->_aChartArea['x2']-($this->_iFrame/2)+3, $y-4, $sLabel, $this->_getColor(0,0,0));
     }
     
     public function drawAbscissa($iLeft, $y1, $y2,$aAbscissaColor){

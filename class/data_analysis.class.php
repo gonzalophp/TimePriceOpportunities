@@ -2,6 +2,7 @@
 require_once('class/chart/realchart.class.php');
 
 class data_analysis {
+    private $_iCash;
     private $_aPrices;
     
     public function data_analysis($aPrices){
@@ -26,7 +27,7 @@ class data_analysis {
     
     public function run($sStrategy){
         foreach($this->_aPrices as $oRealPrice){
-            $oRealPrice->clearTrade();
+            $oRealPrice->clearTrades();
         }
         $sMethod = '_'.$sStrategy;
         $this->$sMethod();
@@ -40,6 +41,7 @@ class data_analysis {
     private function _buildStats() {
         $aCurrentTrade = array('dir' => NULL, 'price' => NULL);
         $iConsecutive = 0;
+        $aCash = array('trade_pct' => 0, 'trade_base'=> 100, 'next_trade_base' => 100);
         foreach($this->_aPrices as $sDateTime=>$oRealPrice){
             $aTrades = $oRealPrice->getTrade();
             if (!empty($aTrades)){
@@ -51,6 +53,7 @@ class data_analysis {
                     }
                     elseif (($iTrade==realPrice::TRADE_SELL) || ($iTrade==realPrice::TRADE_BUY)){
                         $aCurrentTrade = $aTrade;
+                        $aCash['trade_pct'] += $aTrade['pct'];
                     }
                     elseif ($iTrade===realPrice::TRADE_CLOSE){
                         $this->_aStats['sequence']['trades'][] = array('datetime'=> $sDateTime
@@ -59,6 +62,28 @@ class data_analysis {
                                                                       ,'close'  => $aTrade['price']);
                         $bTradeWon = (($aCurrentTrade['dir']==realPrice::TRADE_BUY) && ($aTrade['price'] > $aCurrentTrade['price']))
                                     || (($aCurrentTrade['dir']==realPrice::TRADE_SELL) && ($aTrade['price'] < $aCurrentTrade['price']));
+                        
+                        if ($aTrade['pct']<$aCash['trade_pct']){
+                            $nTradePct = $aTrade['pct'];
+                            $aCash['trade_pct'] -= $nTradePct;
+                        }
+                        else {
+                            $nTradePct = $aCash['trade_pct'];
+                            $aCash['trade_pct'] = 0;
+                        }
+                        
+                        if ($bTradeWon) {
+                            $aCash['next_trade_base'] += ($aCash['trade_base']*(abs($aTrade['price']-$aCurrentTrade['price'])/$aCurrentTrade['price']))*($nTradePct/100);
+                        }
+                        else {
+                            $aCash['next_trade_base'] -= ($aCash['trade_base']*(abs($aTrade['price']-$aCurrentTrade['price'])/$aCurrentTrade['price']))*($nTradePct/100);
+                        }
+                        
+                        if ($aCash['trade_pct'] == 0) {
+                            $aCash['trade_base'] = $aCash['next_trade_base'];
+                        }
+                            
+                        
                         $this->_aStats['sequence']['letters'] .= $bTradeWon ? 'G' : 'L';
                         if ($bTradeWon && ($iConsecutive>0)){       // won
                             $iConsecutive++;
@@ -98,6 +123,7 @@ class data_analysis {
             }
         }
         
+        $this->_aStats['total']['cash_pct'] = $aCash['trade_base'];
         $this->_aStats['total']['profit'] = $this->_aStats['total']['gains']-$this->_aStats['total']['loss'];
         
         $iTimesWon = substr_count($this->_aStats['sequence']['letters'], 'G');
@@ -144,6 +170,7 @@ class data_analysis {
         else {
             $this->_aStats['avg']['gains_in_a_row'] = 0;
         }
+        
     }
     
     /*
@@ -998,6 +1025,118 @@ Gains in a row 2.67
         
         echo $sHTMLSTOProffit;
         
+    }
+    
+    
+    private function _strategy_daily4(){
+        $iTrading = NULL;
+        $aDateTimes = array_keys($this->_aPrices);
+        $aLast = array('up'=>array(), 'down'=>array());
+        $iRefDays = 20;
+        $nOpenPrice = NULL;
+        $bReadyToSell = false;
+        $bReadyToBuy = false;
+                    
+        for($i=0;$i < count($aDateTimes);$i++){
+            $oRealPrice = $this->_aPrices[$aDateTimes[$i]];
+            $aIndicatorsData = $oRealPrice->getIndicators()->getData();
+            if(!is_null($aIndicatorsData['RSI'][14]['real']) 
+                && !is_null($aIndicatorsData['STO'])
+                && !is_null($aIndicatorsData['MA'][20]['real'])
+                && !is_null($aIndicatorsData['MA'][50]['real'])){
+                
+                if (count($aLast['up'])>=$iRefDays){
+                    array_shift($aLast['up']);
+                    array_shift($aLast['down']);
+                }
+                $aLast['up'][] = $oRealPrice->getMax();
+                $aLast['down'][] = $oRealPrice->getMin();
+               
+                
+                // Positive -> price is belowe MA50  -   Negative -> price is above MA50
+                $nMA50DistancePct = 100*($aIndicatorsData['MA'][50]['real']-$oRealPrice->getClose())/$oRealPrice->getClose();
+                
+                $nCoef = $aIndicatorsData['RSI'][14]['real']*$aIndicatorsData['STO']['real']['d'];
+                
+                $bOverBought    = (($nMA50DistancePct<-5) &&  ($nCoef>6800));
+                $bOverSold      = (($nMA50DistancePct>4) && ($nCoef<900));
+                
+                $bBelowRefPrice = (count($aLast['down'])>=8) ? ($oRealPrice->getMin()<min(array_slice($aLast['down'],5,14))):false;
+                $bAboveRefPrice = (count($aLast['up'])>=8) ? ($oRealPrice->getMax()>max(array_slice($aLast['up'],5,14))):false;
+                        
+                if (($bOverBought) || $bBelowRefPrice){
+                    if (!$bReadyToSell){
+                        $bReadyToSell = true;
+                        $bReadyToBuy = false;
+                    }    
+                }
+                elseif($bOverSold || $bAboveRefPrice){
+                    if (!$bReadyToBuy){
+                        $bReadyToBuy = true;
+                        $bReadyToSell = false;
+                    }
+                }
+                
+                if (!is_null($iTrading)){
+                    if ($iTrading==realPrice::TRADE_BUY) {
+                        if(($bReadyToSell) && ($oRealPrice->getMin()<min(array_slice($aLast['down'],5,4)))){
+                            
+                            $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
+                            $iTrading=NULL;
+                            
+                            $nOpenPrice = $oRealPrice->getClose();
+                            $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                            $nOpenDistance = $nMA50DistancePct;
+                            $iTrading=realPrice::TRADE_SELL;
+                        }
+                    }
+                    elseif ($iTrading==realPrice::TRADE_SELL){
+                        if($bReadyToBuy && ($oRealPrice->getMax()>max(array_slice($aLast['up'],5,4)))){
+                            $oRealPrice->addTrade(realPrice::TRADE_CLOSE, $oRealPrice->getClose());
+                            $iTrading=NULL;
+                            $nOpenPrice = $oRealPrice->getClose();
+                            $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                            $nOpenDistance = $nMA50DistancePct;
+                            $iTrading=realPrice::TRADE_BUY;
+                        }
+                    }
+                }
+                
+                
+                if (is_null($iTrading)){
+                    
+//                    echo "$nMA50DistancePct {$aIndicatorsData['RSI'][14]['real']} {$aIndicatorsData['STO']['real']['d']} <br/>";
+                    
+                    if ((($nMA50DistancePct>4)
+//                        && ($aIndicatorsData['RSI'][14]['real']<49)    
+//                        && ($aIndicatorsData['STO']['real']['d']<38)    
+                          &&  ($nCoef<1800))
+                            
+//                          || ($oRealPrice->getMax()>max(array_slice($aLast['up'],0,9)))
+                        ){
+                        $nOpenPrice = $oRealPrice->getClose();
+                        $oRealPrice->addTrade(realPrice::TRADE_BUY, $oRealPrice->getClose());
+                        $nOpenDistance = $nMA50DistancePct;
+                        $iTrading=realPrice::TRADE_BUY;
+                        $bReadyToBuy = false;
+                        $bReadyToSell = false;
+                    }
+                    elseif ((($nMA50DistancePct<-4)
+//                        && ($aIndicatorsData['RSI'][14]['real']>73)    
+//                        && ($aIndicatorsData['STO']['real']['d']<15)    
+                            &&  ($nCoef>6905)) // 73*85
+//                            || ($oRealPrice->getMin()<min(array_slice($aLast['down'],0,9)))
+                        ){
+                        $nOpenPrice = $oRealPrice->getClose();
+                        $oRealPrice->addTrade(realPrice::TRADE_SELL, $oRealPrice->getClose());
+                        $nOpenDistance = $nMA50DistancePct;
+                        $iTrading=realPrice::TRADE_SELL;
+                        $bReadyToBuy = false;
+                        $bReadyToSell = false;
+                    }
+                }
+            }
+        }
     }
 }
 ?>

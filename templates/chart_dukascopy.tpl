@@ -36,6 +36,7 @@
                 <li><span>Gains </span><span><!--{$analysis_stats['total']['gains']|string_format:"%.2f"}--></span></li>
                 <li><span>Loss </span><span><!--{$analysis_stats['total']['loss']|string_format:"%.2f"}--></span></li>
                 <li><span>Profit </span><span><!--{$analysis_stats['total']['profit']|string_format:"%.2f"}--></span></li>
+                <li><span>Cash Pct </span><span><!--{$analysis_stats['total']['cash_pct']|string_format:"%.2f"}-->%</span></li>
             </ul>
         </li>
         <li>

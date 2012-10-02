@@ -62,11 +62,12 @@ class indicators {
     public function drawIndicators($oImageChart, $x){
         static $aPreviousIndicatorsData = NULL;
         static $iPreviousX = NULL;
+        static $bDrawRSIValueLabel=false;
+        static $bDrawSTOValueLabel=false;
         
         if (array_key_exists('ma', $this->_aIndicators)) {
             foreach($this->_aIndicators['ma'] as $iMAPrices){
                 if (!is_null($aPreviousIndicatorsData) && !(is_null($this->_aData['MA'][$iMAPrices]['graph']))){
-//                    $oImageChart->drawPoint($x, $this->_aData['MA'][$iMAPrices]['graph'], array('r'=>200, 'g'=>100, 'b'=>25));
                     $oImageChart->drawLine($x, $this->_aData['MA'][$iMAPrices]['graph'], $iPreviousX, $aPreviousIndicatorsData['MA'][$iMAPrices]['graph'], $this->_aData['MA'][$iMAPrices]['color']);
                 }
             }
@@ -92,6 +93,10 @@ class indicators {
                                             , $iPreviousX
                                             , $aPreviousIndicatorsData['RSI'][$n]['graph']
                                             , array('r' => 0, 'g' => 25, 'b' => 255));
+                    if (!$bDrawRSIValueLabel){
+                        $oImageChart->drawValueLabel(1, $aPreviousIndicatorsData['RSI'][$n]['graph'], $aPreviousIndicatorsData['RSI'][$n]['real']);
+                        $bDrawRSIValueLabel=true;
+                    }
                 }
             }
         }
@@ -106,6 +111,10 @@ class indicators {
                                         , $iPreviousX
                                         , $aPreviousIndicatorsData['STO']['graph']['d']
                                         , array('r' => 255, 'g' => 25, 'b' => 255));
+                if (!$bDrawSTOValueLabel){
+                    $oImageChart->drawValueLabel(1, $aPreviousIndicatorsData['STO']['graph']['k'], $aPreviousIndicatorsData['STO']['real']['k']);
+                    $bDrawSTOValueLabel=true;
+                }
             }
         }
         

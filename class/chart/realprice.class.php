@@ -24,7 +24,7 @@ class realPrice {
         $this->_nClose      = $nClose;
         $this->_iVolume     = $iVolume;
         $this->_aDateTimes  = array($sDateTime);
-        $this->_aTrade      = array();
+        $this->clearTrades();
     }
     
     public function setGraphicalChart($oGraphicalChart){
@@ -40,15 +40,15 @@ class realPrice {
         return $this->_aTrade;
     }
     
-    public function addTrade($iTradeDirection, $nPrice){
+    public function addTrade($iTradeDirection, $nPrice, $iPct=100){
         if (!is_null($nPrice) &&(($nPrice>$this->_nMax) || ($nPrice<$this->_nMin))) {
             echo "trade error - price: $nPrice - min: $this->_nMin - max: $this->_nMax";
             exit;
         }
-        $this->_aTrade[] = array('dir'=>$iTradeDirection,'price'=>$nPrice);
+        $this->_aTrade[] = array('dir'=>$iTradeDirection,'price'=>$nPrice, 'pct' => $iPct);
     }
     
-    public function clearTrade(){
+    public function clearTrades(){
         $this->_aTrade = array();
     }
     

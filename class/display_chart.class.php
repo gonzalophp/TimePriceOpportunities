@@ -73,7 +73,7 @@ class display_char {
                                                                         ,$aDataPrice['volume']));
         }
         
-        $this->_oGraphicalChart = new graphicalChart(900,500);
+        $this->_oGraphicalChart = new graphicalChart(1900,500);
         $this->_oGraphicalChart->buildGraphicalChart($oRealChart);
         
         
@@ -94,7 +94,7 @@ if (array_key_exists('chart_dukascopy', $_POST)){
     $aPrices = $oDisplayChart->build_chart($_POST['quote_id'],$_POST['interval'],$_POST['days']);
     
     $oDataAnalysis = new data_analysis($aPrices);
-    $oDataAnalysis->run('strategy_daily3');
+    $oDataAnalysis->run('strategy_daily4');
     
     $oDisplayChart->draw();
     

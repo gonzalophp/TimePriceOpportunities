@@ -135,7 +135,7 @@ class graphicalChart {
         
         $sGraphTimeInterval = $this->_oRealChart->getGraphTimeInterval();
         if ($sGraphTimeInterval=='1D' || $sGraphTimeInterval=='1W'){
-            $sDateDivision1 = 'm'; // months
+            $sDateDivision1 = 'M'; // months
             $sDateDivision2 = 'Y'; // years
         }
         else {
@@ -198,6 +198,7 @@ class graphicalChart {
                 $x = (int)(string)($iRightExtreme-($i*$iPriceWidth));
                 $oRealPrice->getIndicators()->drawIndicators($this->_oImageChart, $x);
                 $oRealPrice->drawPrice($this->_oImageChart, $x);
+                $bDrawValueLabel = false;
             }
         }
     }

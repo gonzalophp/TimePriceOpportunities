@@ -21,13 +21,18 @@ class candlestick extends realPrice {
     }
     
     public function drawPrice($oImageChart, $x){
-        
+        static $bDrawValueLabel=false;
         $oImageChart->drawCandlestick(($x-((int)($this->getGraphWidth()/2)))
                                     , ($x+((int)($this->getGraphWidth()/2)))
                                     , $this->_iGraphMin
                                     , $this->_iGraphMax
                                     , $this->_iGraphOpen
                                     , $this->_iGraphClose);
+        if (!$bDrawValueLabel){
+            $oImageChart->drawValueLabel(1, $this->_iGraphClose, $this->getClose());
+            $bDrawValueLabel=true;
+        }
+        
         $aTrades = $this->getTrade();
         if (!empty($aTrades)){
             foreach($aTrades as $i=>$aTrade){
